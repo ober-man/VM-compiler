@@ -23,11 +23,11 @@ enum class BinOpType
 {
     NONE = 0,
 
-	// Arithmetical
-    ADD, 
-    SUB, 
-    MUL, 
-    DIV, 
+    // Arithmetical
+    ADD,
+    SUB,
+    MUL,
+    DIV,
     MOD,
 
     // Bitwise
@@ -35,9 +35,9 @@ enum class BinOpType
     SHR,
 
     // Logical
-	AND, 
-	OR, 
-	XOR,
+    AND,
+    OR,
+    XOR,
 
     // Compare
     CMP,
@@ -76,4 +76,4 @@ enum class DataType
     END = FLOAT64
 };
 
-}
+} // namespace compiler

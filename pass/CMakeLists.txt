@@ -1,0 +1,4 @@
+set(PASS_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/rpo.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/domtree.cpp
+)

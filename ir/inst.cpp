@@ -2,133 +2,172 @@
 
 namespace compiler
 {
-	template <typename T>
-	constexpr DataType getDataType()
-	{
-		if constexpr (std::is_integral_v<T>) 
-		{
-            if (sizeof(T) == sizeof(uint32_t))
-                return DataType::INT32;
-            else return DataType::INT64;
-        }
-    	else if constexpr (std::is_same_v<T, float>)
-        	return DataType::FLOAT32;
-        else if constexpr (std::is_same_v<T, double>)
-        	return DataType::FLOAT64;
-    	return DataType::NO_TYPE;
-	}
 
-	// TODO rewrite to macroses
-	std::string BinaryInst::getBinOpTypeString()
-	{
-		switch (op)
-		{
-			case BinOpType::ADD:
-				return "add";
+template <class T, class... Args>
+std::shared_ptr<Inst> createInst(Args &&... args)
+{
+    return std::make_shared<T>(std::forward<Args>(args)...);
+}
 
-			case BinOpType::SUB:
-				return "sub";
+template <typename T>
+constexpr DataType getDataType()
+{
+    if constexpr (std::is_integral_v<T>)
+    {
+        if (sizeof(T) == sizeof(uint32_t))
+            return DataType::INT32;
+        else
+            return DataType::INT64;
+    }
+    else if constexpr (std::is_same_v<T, float>)
+        return DataType::FLOAT32;
+    else if constexpr (std::is_same_v<T, double>)
+        return DataType::FLOAT64;
+    return DataType::NO_TYPE;
+}
 
-			case BinOpType::MUL:
-				return "mul";
+// TODO rewrite to macroses
+std::string BinaryInst::getBinOpTypeString()
+{
+    switch (op)
+    {
+    case BinOpType::ADD:
+        return "add";
 
-			case BinOpType::DIV:
-				return "div";
+    case BinOpType::SUB:
+        return "sub";
 
-			case BinOpType::MOD:
-				return "mod";
+    case BinOpType::MUL:
+        return "mul";
 
-			case BinOpType::SHL:
-				return "shl";
+    case BinOpType::DIV:
+        return "div";
 
-			case BinOpType::SHR:
-				return "shr";
+    case BinOpType::MOD:
+        return "mod";
 
-			case BinOpType::AND:
-				return "and";
+    case BinOpType::SHL:
+        return "shl";
 
-			case BinOpType::OR:
-				return "or";
+    case BinOpType::SHR:
+        return "shr";
 
-			case BinOpType::XOR:
-				return "xor";
+    case BinOpType::AND:
+        return "and";
 
-			case BinOpType::CMP:
-				return "cmp";
+    case BinOpType::OR:
+        return "or";
 
-			default:
-				return "";
-		}
-	}
+    case BinOpType::XOR:
+        return "xor";
 
-	std::string UnaryInst::getUnOpTypeString()
-	{
-		switch (op)
-		{
-			case UnOpType::NOT:
-				return "not";
+    case BinOpType::CMP:
+        return "cmp";
 
-			case UnOpType::MOV:
-				return "mov";
+    default:
+        return "";
+    }
+}
 
-			case UnOpType::RETURN:
-				return "return";
+std::string UnaryInst::getUnOpTypeString()
+{
+    switch (op)
+    {
+    case UnOpType::NOT:
+        return "not";
 
-			default:
-				return "";
-		}
+    case UnOpType::MOV:
+        return "mov";
 
-	}
+    case UnOpType::RETURN:
+        return "return";
 
-	std::string JumpInst::getJumpOpTypeString()
-	{
-		switch (op)
-		{
-			case BinOpType::JMP:
-				return "jmp";
+    default:
+        return "";
+    }
+}
 
-			case BinOpType::JE:
-				return "je";
+std::string JumpInst::getJumpOpTypeString()
+{
+    switch (op)
+    {
+    case BinOpType::JMP:
+        return "jmp";
 
-			case BinOpType::JNE:
-				return "jne";
+    case BinOpType::JE:
+        return "je";
 
-			case BinOpType::JLT:
-				return "jlt";
+    case BinOpType::JNE:
+        return "jne";
 
-			case BinOpType::JLE:
-				return "jle";
+    case BinOpType::JLT:
+        return "jlt";
 
-			case BinOpType::JGT:
-				return "jgt";
+    case BinOpType::JLE:
+        return "jle";
 
-			case BinOpType::JGE:
-				return "jge";
+    case BinOpType::JGT:
+        return "jgt";
 
-			default:
-				return "";
-		}
-	}
+    case BinOpType::JGE:
+        return "jge";
 
-	std::string getDataTypeString(DataType type)
-	{
-		switch (type)
-		{
-			case DataType::INT32:
-				return "int32";
+    default:
+        return "";
+    }
+}
 
-			case DataType::INT64:
-				return "int64";
+void JumpInst::dump(std::ostream &out = std::cout) override
+{
+    out << "\t" << id << " " << getJumpOpTypeString() << " " << target->getId()
+        << std::endl;
+}
 
-			case DataType::FLOAT32:
-				return "float32";
+std::string getDataTypeString(DataType type)
+{
+    switch (type)
+    {
+    case DataType::INT32:
+        return "int32";
 
-			case DataType::FLOAT64:
-				return "float64";
+    case DataType::INT64:
+        return "int64";
 
-			default:
-				return "";
-		}
-	}
+    case DataType::FLOAT32:
+        return "float32";
+
+    case DataType::FLOAT64:
+        return "float64";
+
+    default:
+        return "";
+    }
+}
+
+CallInst(std::initializer_list<size_t> args_) : Inst(InstType::CALL, 0)
+{
+    for (auto arg : args_)
+        args.push_back(bb->getInst(arg));
+}
+
+void CallInst::dump(std::ostream &out = std::cout) override
+{
+    out << "\t" << id << " "
+        << "call " << func->getName();
+    out << "(";
+    std::for_each(args.begin(), args.end(),
+                  [&out](auto arg) { out << arg->getId() << " "; });
+    out << ")" << std::endl;
+}
+
+void PhiInst::dump(std::ostream &out = std::cout) override
+{
+    out << "\t" << id << " "
+        << "phi ";
+    for (auto &&input : inputs)
+        out << "(" << input.first->getId() << " " << input.second->getId()
+            << ")" << std::endl;
+    out << std::endl;
+}
 
 } // namespace compiler

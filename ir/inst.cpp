@@ -1,4 +1,6 @@
 #include "inst.h"
+#include "basicblock.h"
+#include "graph.h"
 
 namespace compiler
 {
@@ -9,59 +11,42 @@ std::shared_ptr<Inst> createInst(Args &&... args)
     return std::make_shared<T>(std::forward<Args>(args)...);
 }
 
-template <typename T>
-constexpr DataType getDataType()
-{
-    if constexpr (std::is_integral_v<T>)
-    {
-        if (sizeof(T) == sizeof(uint32_t))
-            return DataType::INT32;
-        else
-            return DataType::INT64;
-    }
-    else if constexpr (std::is_same_v<T, float>)
-        return DataType::FLOAT32;
-    else if constexpr (std::is_same_v<T, double>)
-        return DataType::FLOAT64;
-    return DataType::NO_TYPE;
-}
-
 // TODO rewrite to macroses
-std::string BinaryInst::getBinOpTypeString()
+std::string BinaryInst::getBinOpTypeString() const noexcept
 {
     switch (op)
     {
-    case BinOpType::ADD:
+    case BinOpType::Add:
         return "add";
 
-    case BinOpType::SUB:
+    case BinOpType::Sub:
         return "sub";
 
-    case BinOpType::MUL:
+    case BinOpType::Mul:
         return "mul";
 
-    case BinOpType::DIV:
+    case BinOpType::Div:
         return "div";
 
-    case BinOpType::MOD:
+    case BinOpType::Mod:
         return "mod";
 
-    case BinOpType::SHL:
+    case BinOpType::Shl:
         return "shl";
 
-    case BinOpType::SHR:
+    case BinOpType::Shr:
         return "shr";
 
-    case BinOpType::AND:
+    case BinOpType::And:
         return "and";
 
-    case BinOpType::OR:
+    case BinOpType::Or:
         return "or";
 
-    case BinOpType::XOR:
+    case BinOpType::Xor:
         return "xor";
 
-    case BinOpType::CMP:
+    case BinOpType::Cmp:
         return "cmp";
 
     default:
@@ -69,17 +54,14 @@ std::string BinaryInst::getBinOpTypeString()
     }
 }
 
-std::string UnaryInst::getUnOpTypeString()
+std::string UnaryInst::getUnOpTypeString() const noexcept
 {
     switch (op)
     {
-    case UnOpType::NOT:
+    case UnOpType::Not:
         return "not";
 
-    case UnOpType::MOV:
-        return "mov";
-
-    case UnOpType::RETURN:
+    case UnOpType::Return:
         return "return";
 
     default:
@@ -87,72 +69,75 @@ std::string UnaryInst::getUnOpTypeString()
     }
 }
 
-std::string JumpInst::getJumpOpTypeString()
+std::string JumpInst::getJumpOpTypeString() const noexcept
 {
     switch (op)
     {
-    case BinOpType::JMP:
+    case JumpOpType::Jmp:
         return "jmp";
 
-    case BinOpType::JE:
+    case JumpOpType::Je:
         return "je";
 
-    case BinOpType::JNE:
+    case JumpOpType::Jne:
         return "jne";
 
-    case BinOpType::JLT:
-        return "jlt";
+    case JumpOpType::Jb:
+        return "jb";
 
-    case BinOpType::JLE:
-        return "jle";
+    case JumpOpType::Jbe:
+        return "jbe";
 
-    case BinOpType::JGT:
-        return "jgt";
+    case JumpOpType::Ja:
+        return "ja";
 
-    case BinOpType::JGE:
-        return "jge";
+    case JumpOpType::Jae:
+        return "jae";
 
     default:
         return "";
     }
 }
 
-void JumpInst::dump(std::ostream &out = std::cout) override
+void JumpInst::dump(std::ostream &out) const
 {
-    out << "\t" << id << " " << getJumpOpTypeString() << " " << target->getId()
-        << std::endl;
+    out << "\t"
+        << "v" << id << ". " << getJumpOpTypeString() << " bb"
+        << target->getId() << std::endl;
 }
 
 std::string getDataTypeString(DataType type)
 {
     switch (type)
     {
-    case DataType::INT32:
-        return "int32";
+    case DataType::Int32:
+        return "i32";
 
-    case DataType::INT64:
-        return "int64";
+    case DataType::Int64:
+        return "i64";
 
-    case DataType::FLOAT32:
-        return "float32";
+    case DataType::Float32:
+        return "f32";
 
-    case DataType::FLOAT64:
-        return "float64";
+    case DataType::Float64:
+        return "f64";
 
     default:
         return "";
     }
 }
 
-CallInst(std::initializer_list<size_t> args_) : Inst(InstType::CALL, 0)
+CallInst::CallInst(std::initializer_list<size_t> args_)
+    : Inst(0, InstType::Call)
 {
     for (auto arg : args_)
         args.push_back(bb->getInst(arg));
 }
 
-void CallInst::dump(std::ostream &out = std::cout) override
+void CallInst::dump(std::ostream &out) const
 {
-    out << "\t" << id << " "
+    out << "\t"
+        << "v" << id << ". "
         << "call " << func->getName();
     out << "(";
     std::for_each(args.begin(), args.end(),
@@ -160,13 +145,15 @@ void CallInst::dump(std::ostream &out = std::cout) override
     out << ")" << std::endl;
 }
 
-void PhiInst::dump(std::ostream &out = std::cout) override
+void PhiInst::dump(std::ostream &out) const
 {
-    out << "\t" << id << " "
+    out << "\t"
+        << "v" << id << ". "
         << "phi ";
     for (auto &&input : inputs)
-        out << "(" << input.first->getId() << " " << input.second->getId()
-            << ")" << std::endl;
+        out << "("
+            << "v" << input.first->getId() << ", bb" << input.second->getId()
+            << ") ";
     out << std::endl;
 }
 

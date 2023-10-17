@@ -24,4 +24,7 @@ target_link_libraries(
     gtest gtest_main
 )
 
+target_link_libraries(tests ir pass gtest gtest_main)
+target_include_directories(tests PRIVATE ${PROJECT_SOURCE_DIR})
+
 add_test(NAME tests COMMAND tests --gtest_color=yes)

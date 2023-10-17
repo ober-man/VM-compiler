@@ -3,8 +3,7 @@
 namespace compiler
 {
 
-auto &DomTree::getUnreachedBBs(
-    std::vector<std::shared_ptr<BasicBlock>> &reached)
+auto DomTree::getUnreachedBBs(std::vector<std::shared_ptr<BasicBlock>> &reached)
 {
     std::vector<std::shared_ptr<BasicBlock>> unreached;
     for (auto bb : reached)
@@ -13,7 +12,7 @@ auto &DomTree::getUnreachedBBs(
     return unreached;
 }
 
-void DomTree::RunPassImpl(std::shared_ptr<Graph> graph) override
+void DomTree::RunPassImpl(std::shared_ptr<Graph> graph)
 {
     assert(graph != nullptr && "nullptr graph in domtree pass");
 

@@ -1,5 +1,3 @@
-#pragma once
-
 #include "rpo.h"
 
 namespace compiler
@@ -25,7 +23,7 @@ void RPO::VisitBasicBlock(std::shared_ptr<BasicBlock> bb)
     rpo_bbs.push_back(bb);
 }
 
-void RPO::RunPassImpl(std::shared_ptr<Graph> graph) override
+void RPO::RunPassImpl(std::shared_ptr<Graph> graph)
 {
     assert(graph != nullptr && "nullptr graph in RPO pass");
 

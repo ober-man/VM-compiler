@@ -5,7 +5,7 @@
 namespace compiler
 {
 
-class DomTree final : public Pass
+class DomTree final : public Analysis
 {
   public:
     DomTree() = default;
@@ -14,7 +14,7 @@ class DomTree final : public Pass
     void RunPassImpl(std::shared_ptr<Graph> graph) override;
 
   private:
-    auto &getUnreachedBBs(std::vector<std::shared_ptr<BasicBlock>> &reached);
+    auto getUnreachedBBs(std::vector<std::shared_ptr<BasicBlock>> &reached);
 
   private:
     std::vector<std::shared_ptr<BasicBlock>> bbs;

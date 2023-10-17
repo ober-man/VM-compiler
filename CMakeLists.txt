@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(Compiler)
-
+project(compiler)
 
 include(cmake/CPM.cmake)
 
@@ -15,9 +14,11 @@ set(ROOT_COMPILER ${CMAKE_SOURCE_DIR})
 set(COMPILER_SOURCES ${IR_SOURCES}
 		     ${PASS_SOURCES}
 )
-#${CMAKE_SOURCE_DIR}/ir/inst.cpp)
-
 
 add_subdirectory(ir)
 add_subdirectory(pass)
 add_subdirectory(tests)
+
+#target_include_directories(compiler PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+#target_link_libraries(compiler ir)
+#target_link_libraries(compiler pass)

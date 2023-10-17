@@ -5,75 +5,73 @@ namespace compiler
 
 enum class InstType
 {
-    NONE = 0,
-    BINARY,
-    UNARY,
-    CONST,
-    PARAM,
-    JUMP,
-    CALL,
-    MOV,
-    CAST,
-    CMP,
-    PHI,
-    END = PHI
+    None = 0,
+    Binary,
+    Unary,
+    Const,
+    Param,
+    Jump,
+    Call,
+    Cast,
+    Mov,
+    Phi,
+    End = Phi
 };
 
 enum class BinOpType
 {
-    NONE = 0,
+    None = 0,
 
     // Arithmetical
-    ADD,
-    SUB,
-    MUL,
-    DIV,
-    MOD,
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Mod,
 
     // Bitwise
-    SHL,
-    SHR,
+    Shl,
+    Shr,
 
     // Logical
-    AND,
-    OR,
-    XOR,
+    And,
+    Or,
+    Xor,
 
     // Compare
-    CMP,
-    END = CMP
+    Cmp,
+    End = Cmp
 };
 
 enum class UnOpType
 {
-    NONE = 0,
-    NOT,
-    MOV,
-    RETURN,
-    END = RETURN
+    None = 0,
+    Not,
+    Return,
+    End = Return
 };
 
 enum class JumpOpType
 {
-    NONE = 0,
-    JMP,
-    JE,
-    JNE,
-    JLT,
-    JLE,
-    JGT,
-    JGE,
-    END = JGE
+    None = 0,
+    Jmp,
+    Je,
+    Jne,
+    Jb,
+    Jbe,
+    Ja,
+    Jae,
+    End = Jae
 };
 
 enum class DataType
 {
-    NONE = 0,
-    INT32,
-    INT64,
-    FLOAT32,
-    FLOAT64,
-    END = FLOAT64
+    None = 0,
+    Int32,
+    Int64,
+    Float32,
+    Float64,
+    End = Float64
 };
 
 } // namespace compiler

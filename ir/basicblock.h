@@ -24,64 +24,73 @@ class BasicBlock
 
     ~BasicBlock() = default;
 
-    size_t getId() const
+    size_t getId() const noexcept
     {
         return id;
     }
-    void incrId()
+
+    void incrId() noexcept
     {
         ++id;
     }
-    void setId(size_t id_);
 
-    std::string getName() const
+    void setId(size_t id_) noexcept;
+
+    std::string getName() const noexcept
     {
         return name;
     }
-    void setName(std::string name_)
+
+    void setName(std::string name_) noexcept
     {
         name = name_;
     }
 
-    size_t size() const
+    size_t size() const noexcept
     {
         return bb_size;
     }
-    bool isEmpty()
+
+    bool isEmpty() noexcept
     {
         return bb_size == 0;
     }
 
-    std::shared_ptr<Graph> getGraph() const
+    std::shared_ptr<Graph> getGraph() const noexcept
     {
         return graph;
     }
-    void setGraph(std::shared_ptr<Graph> graph_)
+
+    void setGraph(std::shared_ptr<Graph> graph_) noexcept
     {
         graph = graph_;
     }
 
-    std::vector<std::shared_ptr<BasicBlock>> &getPreds()
+    std::vector<std::shared_ptr<BasicBlock>> &getPreds() noexcept
     {
         return preds;
     }
-    std::shared_ptr<BasicBlock> getTrueSucc()
+
+    std::shared_ptr<BasicBlock> getTrueSucc() noexcept
     {
         return true_succ;
     }
-    std::shared_ptr<BasicBlock> getFalseSucc()
+
+    std::shared_ptr<BasicBlock> getFalseSucc() noexcept
     {
         return false_succ;
     }
 
-    std::shared_ptr<Inst> getFirstInst() const
+    std::shared_ptr<Inst> getFirstInst() const noexcept
     {
         return first_inst;
     }
-    std::shared_ptr<Inst> getLastInst() const
+
+    std::shared_ptr<Inst> getLastInst() const noexcept
     {
         return last_inst;
     }
+
     std::shared_ptr<Inst> getInst(size_t id)
     {
         for (auto inst = first_inst; inst != nullptr; inst = inst->getNext())
@@ -94,14 +103,14 @@ class BasicBlock
     {
         assert(!inst->getPrev() && "inserted inst has predecessor");
 
-        if (!first_inst)
+        if (first_inst == nullptr)
             first_inst = inst;
 
         inst->setPrev(last_inst);
         inst->setNext(nullptr);
         inst->setBB(std::make_shared<BasicBlock>(*this));
 
-        if (last_inst)
+        if (last_inst != nullptr)
             last_inst->setNext(inst);
         last_inst = inst;
         ++bb_size;
@@ -189,9 +198,9 @@ class BasicBlock
 
     void addSucc(std::shared_ptr<BasicBlock> bb)
     {
-        if (true_succ != nullptr)
+        if (true_succ == nullptr)
             true_succ = bb;
-        else if (false_succ != nullptr)
+        else if (false_succ == nullptr)
             false_succ = bb;
         else
         {
@@ -231,10 +240,10 @@ class BasicBlock
         else
             return;
     }
-
-    void replacePred(std::shared_ptr<BasicBlock> pred,
-                     std::shared_ptr<BasicBlock> bb);
-    void replacePred(size_t num, std::shared_ptr<BasicBlock> bb);
+    /*
+        void replacePred(std::shared_ptr<BasicBlock> pred,
+                         std::shared_ptr<BasicBlock> bb);
+        void replacePred(size_t num, std::shared_ptr<BasicBlock> bb);*/
 
     void replaceSucc(std::shared_ptr<BasicBlock> succ,
                      std::shared_ptr<BasicBlock> bb)
@@ -268,14 +277,15 @@ class BasicBlock
         dominators.push_back(dom);
     }
 
-    void dump(std::ostream &out = std::cout);
-    void dumpDomTree(std::ostream &out = std::cout);
+    void dump(std::ostream &out = std::cout) const;
+    void dumpDomTree(std::ostream &out = std::cout) const;
 
-    bool isVisited() const
+    bool isVisited() const noexcept
     {
         return visited;
     }
-    void setVisited(bool v = true)
+
+    void setVisited(bool v = true) noexcept
     {
         visited = v;
     }

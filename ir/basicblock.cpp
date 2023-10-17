@@ -32,7 +32,7 @@ void BasicBlock::dump(std::ostream &out) const
         << std::endl;
     out << "preds : ";
     std::for_each(preds.begin(), preds.end(),
-                  [&out](auto pred) { out << pred->getId() << " "; });
+                  [&out](auto pred) { out << "bb" << pred->getId() << " "; });
     out << "\n";
 
     for (auto inst = first_inst; inst != nullptr; inst = inst->getNext())
@@ -40,9 +40,9 @@ void BasicBlock::dump(std::ostream &out) const
 
     out << "succs : ";
     if (true_succ)
-        out << "true " << true_succ->getId();
+        out << "true bb" << true_succ->getId();
     if (false_succ)
-        out << ", false" << false_succ->getId();
+        out << ", false bb" << false_succ->getId();
     out << "\n"
         << "\n";
 }

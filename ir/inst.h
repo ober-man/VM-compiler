@@ -1,13 +1,10 @@
 #pragma once
 #include "const.h"
 
-#include <algorithm>
 #include <cassert>
-#include <cstdint>
 #include <initializer_list>
 #include <iostream>
 #include <memory>
-#include <string>
 #include <vector>
 
 namespace compiler
@@ -19,7 +16,7 @@ class Graph;
 class Inst
 {
   public:
-    explicit Inst(size_t id_, InstType inst_type_,
+    explicit Inst(size_t id_, InstType inst_type_ = InstType::NoneInst,
                   std::shared_ptr<BasicBlock> bb_ = nullptr)
         : inst_type(inst_type_), id(id_), bb(bb_)
     {}
@@ -71,11 +68,15 @@ class Inst
         prev = prev_;
     }
 
-    virtual DataType getType() const noexcept = 0;
+    virtual DataType getType() const noexcept
+    {
+        return DataType::NoType;
+    }
+
     virtual void dump(std::ostream &out = std::cout) const = 0;
 
   protected:
-    InstType inst_type = InstType::None;
+    InstType inst_type = InstType::NoneInst;
     size_t id = 0;
 
     std::shared_ptr<BasicBlock> bb = nullptr;
@@ -123,7 +124,7 @@ class FixedInputsInst : public Inst
 class BinaryInst final : public FixedInputsInst<2>
 {
   public:
-    explicit BinaryInst(size_t id_, BinOpType op_ = BinOpType::None,
+    explicit BinaryInst(size_t id_, BinOpType op_ = BinOpType::NoneBinOp,
                         std::shared_ptr<Inst> left = nullptr,
                         std::shared_ptr<Inst> right = nullptr)
         : FixedInputsInst(id_, InstType::Binary), op(op_)
@@ -134,33 +135,40 @@ class BinaryInst final : public FixedInputsInst<2>
 
     ~BinaryInst() = default;
 
+    BinOpType getBinOpType() const noexcept
+    {
+        return op;
+    }
+
+    void setBinOpType(BinOpType op_) noexcept
+    {
+        op = op_;
+    }
+
     DataType getType() const noexcept override
     {
-        DataType type = inputs[0]->getType();
-        if (type == DataType::None)
+        DataType data_type = inputs[0]->getType();
+        if (data_type == DataType::NoType)
             return inputs[1]->getType();
-        return type;
+        return data_type;
     }
 
     void dump(std::ostream &out = std::cout) const override
     {
-        out << "\t"
-            << "v" << id << ". " << getBinOpTypeString() << " "
-            << getDataTypeString(getType()) << " v" << inputs[0]->getId()
-            << ", v" << inputs[1]->getId() << std::endl;
+        out << "\t" << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(op)] << " " << TYPE_NAME[static_cast<uint8_t>(getType())] << " v" << inputs[0]->getId() << ", v" << inputs[1]->getId() << std::endl;
     }
 
   private:
     std::string getBinOpTypeString() const noexcept;
 
   private:
-    BinOpType op = BinOpType::None;
+    BinOpType op = BinOpType::NoneBinOp;
 };
 
 class UnaryInst final : public FixedInputsInst<1>
 {
   public:
-    explicit UnaryInst(size_t id_, UnOpType op_ = UnOpType::None,
+    explicit UnaryInst(size_t id_, UnOpType op_ = UnOpType::NoneUnOp,
                        std::shared_ptr<Inst> input = nullptr)
         : FixedInputsInst(id_, InstType::Unary), op(op_)
     {
@@ -169,6 +177,16 @@ class UnaryInst final : public FixedInputsInst<1>
 
     ~UnaryInst() = default;
 
+    UnOpType getUnOpType() const noexcept
+    {
+        return op;
+    }
+
+    void setUnOpType(UnOpType op_) noexcept
+    {
+        op = op_;
+    }
+
     DataType getType() const noexcept override
     {
         return inputs[0]->getType();
@@ -176,41 +194,38 @@ class UnaryInst final : public FixedInputsInst<1>
 
     void dump(std::ostream &out = std::cout) const override
     {
-        out << "\t"
-            << "v" << id << ". " << getUnOpTypeString() << " "
-            << getDataTypeString(getType()) << " v" << inputs[0]->getId()
-            << std::endl;
+        out << "\t" << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(op)] << " " << TYPE_NAME[static_cast<uint8_t>(getType())] << " v" << inputs[0]->getId() << std::endl;
     }
 
   private:
     std::string getUnOpTypeString() const noexcept;
 
   private:
-    UnOpType op = UnOpType::None;
+    UnOpType op = UnOpType::NoneUnOp;
 };
 
 class ConstInst final : public Inst
 {
   public:
-    explicit ConstInst(size_t id_, DataType type_ = DataType::None)
-        : Inst(id_, InstType::Const), type(type_)
+    explicit ConstInst(size_t id_, DataType data_type_ = DataType::NoType)
+        : Inst(id_, InstType::Const), data_type(data_type_)
     {}
 
     template <typename T>
     ConstInst(size_t id_, T value_) : Inst(id_, InstType::Const)
     {
-        static_assert(getDataType<T>() != DataType::None);
+        static_assert(getDataType<T>() != DataType::NoType);
 
-        if constexpr (getDataType<T>() == DataType::Int32)
+        if constexpr (getDataType<T>() == DataType::i32)
             value = static_cast<uint64_t>(value_);
-        else if constexpr (getDataType<T>() == DataType::Int64)
+        else if constexpr (getDataType<T>() == DataType::i64)
             value = value_;
-        else if constexpr (getDataType<T>() == DataType::Float32)
+        else if constexpr (getDataType<T>() == DataType::f32)
             value = static_cast<uint64_t>(value_);
-        else // Float64
-            value_ = static_cast<uint64_t>(value);
+        else // f64
+            value = static_cast<uint64_t>(value_);
 
-        type = getDataType<T>();
+        data_type = getDataType<T>();
     }
 
     ~ConstInst() = default;
@@ -221,82 +236,80 @@ class ConstInst final : public Inst
         if constexpr (std::is_integral_v<T>)
         {
             if (sizeof(T) == sizeof(uint32_t))
-                return DataType::Int32;
+                return DataType::i32;
             else
-                return DataType::Int64;
+                return DataType::i64;
         }
         else if constexpr (std::is_same_v<T, float>)
-            return DataType::Float32;
+            return DataType::f32;
         else if constexpr (std::is_same_v<T, double>)
-            return DataType::Float64;
-        return DataType::None;
+            return DataType::f64;
+        return DataType::NoType;
     }
 
     uint32_t getInt32Value() const
     {
-        assert(type == DataType::Int32);
+        assert(data_type == DataType::i32);
         return static_cast<uint32_t>(value);
     }
 
     uint64_t getInt64Value() const
     {
-        assert(type == DataType::Int64);
+        assert(data_type == DataType::i64);
         return value;
     }
 
     uint64_t getIntValue() const
     {
-        assert(type == DataType::Int32 || type == DataType::Int64);
+        assert(data_type == DataType::i32 || data_type == DataType::i64);
         return value;
     }
 
     float getFloatValue() const
     {
-        assert(type == DataType::Float32);
+        assert(data_type == DataType::f32);
         return static_cast<float>(value);
     }
 
     double getDoubleValue() const
     {
-        assert(type == DataType::Float64);
+        assert(data_type == DataType::f64);
         return static_cast<double>(value);
     }
 
     DataType getType() const noexcept override
     {
-        return type;
+        return data_type;
     }
 
-    void setType(DataType type_) noexcept
+    void setType(DataType data_type_) noexcept
     {
-        type = type_;
+        data_type = data_type_;
     }
 
     void dump(std::ostream &out = std::cout) const override
     {
-        out << "\t"
-            << "v" << id << ". "
-            << "const " << value << std::endl;
+        out << "\t" << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " " << TYPE_NAME[static_cast<uint8_t>(data_type)] << " " << value << std::endl;
     }
 
   private:
-    DataType type = DataType::None;
+    DataType data_type = DataType::NoType;
     uint64_t value;
 };
 
 class ParamInst final : public Inst
 {
   public:
-    explicit ParamInst(size_t id_, DataType type_ = DataType::None,
+    explicit ParamInst(size_t id_, DataType data_type_ = DataType::NoType,
                        std::string name_ = "")
-        : Inst(id_, InstType::Param), type(type_), name(name_)
+        : Inst(id_, InstType::Param), data_type(data_type_), name(name_)
     {}
 
     ~ParamInst() = default;
 
-    void setType(DataType type_) noexcept
+    void setType(DataType data_type_) noexcept
     {
-        type = type_;
+        data_type = data_type_;
     }
 
     std::string getParamName() const noexcept
@@ -311,64 +324,53 @@ class ParamInst final : public Inst
 
     DataType getType() const noexcept override
     {
-        return type;
+        return data_type;
     }
 
     void dump(std::ostream &out = std::cout) const override
     {
-        out << "\t"
-            << "v" << id << ". "
-            << "param " << getDataTypeString(getType()) << " " << name
-            << std::endl;
+        out << "\t" << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " " << TYPE_NAME[static_cast<uint8_t>(data_type)] << " " << name << std::endl;
     }
 
   private:
-    DataType type = DataType::None;
+    DataType data_type = DataType::NoType;
     std::string name = "";
 };
 
 class JumpInst final : public Inst
 {
   public:
-    explicit JumpInst(size_t id_, JumpOpType op_ = JumpOpType::None,
+    explicit JumpInst(size_t id_, JumpOpType op_ = JumpOpType::NoneJumpOp,
                       std::shared_ptr<BasicBlock> target_ = nullptr)
         : Inst(id_, InstType::Jump), op(op_), target(target_)
     {}
 
     ~JumpInst() = default;
 
-    JumpOpType getJumpType() const noexcept
+    JumpOpType getJumpOpType() const noexcept
     {
         return op;
     }
 
-    void setJumpType(JumpOpType op_) noexcept
+    void setJumpOpType(JumpOpType op_) noexcept
     {
         op = op_;
     }
 
-    std::shared_ptr<BasicBlock> getBB() const noexcept
+    std::shared_ptr<BasicBlock> getTargetBB() const noexcept
     {
         return target;
     }
 
-    void setBB(std::shared_ptr<BasicBlock> target_) noexcept
+    void setTargetBB(std::shared_ptr<BasicBlock> target_) noexcept
     {
         target = target_;
-    }
-
-    DataType getType() const noexcept override
-    {
-        return DataType::None;
     }
 
     void dump(std::ostream &out = std::cout) const override;
 
   private:
-    std::string getJumpOpTypeString() const noexcept;
-
-  private:
-    JumpOpType op = JumpOpType::None;
+    JumpOpType op = JumpOpType::NoneJumpOp;
     std::shared_ptr<BasicBlock> target = nullptr;
 };
 
@@ -415,15 +417,9 @@ class CallInst final : public Inst
         args[num] = new_arg;
     }
 
-    DataType getType() const noexcept override
-    {
-        return DataType::None;
-    }
-
     void dump(std::ostream &out = std::cout) const override;
 
   private:
-    // TODO make a function class
     std::shared_ptr<Graph> func;
     std::vector<std::shared_ptr<Inst>> args;
 };
@@ -432,7 +428,7 @@ class CastInst final : public FixedInputsInst<1>
 {
   public:
     explicit CastInst(size_t id_, std::shared_ptr<Inst> input = nullptr,
-                      DataType to_ = DataType::None)
+                      DataType to_ = DataType::NoType)
         : FixedInputsInst(id_, InstType::Cast), to(to_)
     {
         inputs[0] = input;
@@ -450,28 +446,23 @@ class CastInst final : public FixedInputsInst<1>
         return to;
     }
 
-    // return type of the converted value
-    DataType getType() const noexcept override
-    {
-        return to;
-    }
-
     void setToType(DataType to_) noexcept
     {
         to = to_;
     }
 
+    DataType getType() const noexcept override
+    {
+        return to;
+    }
+
     void dump(std::ostream &out = std::cout) const override
     {
-        out << "\t"
-            << "v" << id << ". "
-            << "cast "
-            << "v" << inputs[0]->getId() << " to " << getDataTypeString(to)
-            << std::endl;
+        out << "\t" << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " v" << inputs[0]->getId() << " to " << TYPE_NAME[static_cast<uint8_t>(to)] << std::endl;
     }
 
   private:
-    DataType to = DataType::None;
+    DataType to = DataType::NoType;
 };
 
 class MovInst final : public FixedInputsInst<1>
@@ -503,11 +494,7 @@ class MovInst final : public FixedInputsInst<1>
 
     void dump(std::ostream &out = std::cout) const override
     {
-        out << "\t"
-            << "v" << id << ". "
-            << "mov " << getDataTypeString(getType()) << " "
-            << "r" << reg_num << ", "
-            << "v" << inputs[0]->getId() << std::endl;
+        out << "\t" << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " " << TYPE_NAME[static_cast<uint8_t>(getType())] << " r" << reg_num << ", v" << inputs[0]->getId() << std::endl;
     }
 
   private:
@@ -561,7 +548,13 @@ class PhiInst : public Inst
 
     DataType getType() const noexcept override
     {
-        return DataType::None;
+        for (auto &&input : inputs)
+        {
+        	DataType type = input.first->getType();
+        	if (type != DataType::NoType)
+        		return type;
+        }
+        return DataType::NoType;
     }
 
     void dump(std::ostream &out = std::cout) const override;

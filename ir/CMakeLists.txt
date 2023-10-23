@@ -5,4 +5,4 @@ set(IR_SOURCES
 )
 
 add_library(ir SHARED ${IR_SOURCES})
-target_include_directories(ir PRIVATE ${PROJECT_SOURCE_DIR})
+target_include_directories(ir PUBLIC ${PROJECT_SOURCE_DIR})

@@ -1,49 +1,45 @@
 #pragma once
 
-#include "ir/graph.h"
+#include "pass.h"
 
 namespace compiler
 {
 
+class Analysis;
+class Optimization;
+class Rpo;
+class DomTree;
+class LoopAnalyzer;
+class Graph;
+
+#define UNREACHABLE() __builtin_unreachable()
+
 class PassManager final
 {
   public:
-    PassManager() = default;
-    ~PassManager() = default;
+    explicit PassManager(Graph *g) : graph(g)
+    {}
+    ~PassManager();
 
-    // TODO: make concept
-    template <typename Pass>
-    void RunPass(std::shared_ptr<Graph> graph)
+    // template <typename PassName>
+    // TODO: fix PassManager
+    // [some template magic was broken and there is crutch]
+    void runPassRpo();
+    void runPassDomTree();
+    void runPassLoopAnalyzer();
+
+    Graph *getGraph() const noexcept
     {
-        Pass pass;
-        pass.RunPassImpl(graph);
+        return graph;
     }
-};
 
-class Pass
-{
-  public:
-    Pass() = default;
-    virtual ~Pass() = default;
+    void dumpAnalyses(std::ostream &out = std::cout);
+    void dumpOpts(std::ostream &out = std::cout);
 
-    virtual void RunPassImpl(std::shared_ptr<Graph> graph) = 0;
-};
-
-class Optimization : public Pass
-{
-  public:
-    Optimization() = default;
-    virtual ~Optimization() = default;
-};
-
-class RPO;
-class DomTree;
-
-class Analysis : public Pass
-{
-  public:
-    Analysis() = default;
-    virtual ~Analysis() = default;
+  private:
+    Graph *graph = nullptr;
+    std::vector<Analysis *> analyses;
+    std::vector<Optimization *> opts;
 };
 
 } // namespace compiler

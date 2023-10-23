@@ -34,13 +34,13 @@ TEST(IR_TEST, FACT)
         v16. Ret  i64 v15
     */
 
-    auto graph = std::make_shared<Graph>(Graph{"fact"});
+    auto graph = std::make_shared<Graph>("fact");
 
-    auto bb1 = std::make_shared<BasicBlock>(BasicBlock{1, graph});
-    auto bb2 = std::make_shared<BasicBlock>(BasicBlock{2, graph});
-    auto bb3 = std::make_shared<BasicBlock>(BasicBlock{3, graph});
-    auto bb4 = std::make_shared<BasicBlock>(BasicBlock{4, graph});
-    auto bb5 = std::make_shared<BasicBlock>(BasicBlock{5, graph});
+    auto *bb1 = new BasicBlock{1, graph};
+    auto *bb2 = new BasicBlock{2, graph};
+    auto *bb3 = new BasicBlock{3, graph};
+    auto *bb4 = new BasicBlock{4, graph};
+    auto *bb5 = new BasicBlock{5, graph};
 
     // Fill bb1
     auto v1 = std::make_shared<ParamInst>(ParamInst{1, DataType::i32, "a0"});
@@ -95,8 +95,7 @@ TEST(IR_TEST, FACT)
     // Fill bb3
     auto v7 = std::make_shared<PhiInst>(PhiInst{7});
     v7->addInput(std::make_pair(v5, bb2));
-    auto v8 =
-        std::make_shared<BinaryInst>(BinaryInst{8, BinOpType::Cmp, v7, v6});
+    auto v8 = std::make_shared<BinaryInst>(BinaryInst{8, BinOpType::Cmp, v7, v6});
     auto v9 = std::make_shared<JumpInst>(JumpInst{9, JumpOpType::Ja, bb5});
 
     bb3->pushBackInst(v7);
@@ -124,10 +123,8 @@ TEST(IR_TEST, FACT)
     v10->addInput(std::make_pair(v4, bb2));
     auto v11 = std::make_shared<PhiInst>(PhiInst{11});
     v11->addInput(std::make_pair(v5, bb2));
-    auto v12 =
-        std::make_shared<BinaryInst>(BinaryInst{12, BinOpType::Mul, v10, v11});
-    auto v13 =
-        std::make_shared<BinaryInst>(BinaryInst{13, BinOpType::Add, v11, v2});
+    auto v12 = std::make_shared<BinaryInst>(BinaryInst{12, BinOpType::Mul, v10, v11});
+    auto v13 = std::make_shared<BinaryInst>(BinaryInst{13, BinOpType::Add, v11, v2});
     auto v14 = std::make_shared<JumpInst>(JumpInst{14, JumpOpType::Jmp, bb3});
 
     v7->addInput(std::make_pair(v13, bb4));
@@ -166,8 +163,7 @@ TEST(IR_TEST, FACT)
     auto v15 = std::make_shared<PhiInst>(PhiInst{15});
     v15->addInput(std::make_pair(v4, bb2));
     v15->addInput(std::make_pair(v12, bb4));
-    auto v16 =
-        std::make_shared<UnaryInst>(UnaryInst{16, UnOpType::Return, v15});
+    auto v16 = std::make_shared<UnaryInst>(UnaryInst{16, UnOpType::Return, v15});
 
     bb5->pushBackInst(v15);
     bb5->pushBackInst(v16);
@@ -191,7 +187,7 @@ TEST(IR_TEST, FACT)
     graph->insertBB(bb4);
     graph->insertBB(bb5);
 
-    graph->dump();
+    // graph->dump();
 
     {
         ASSERT_EQ(bb1->getId(), 1);

@@ -1,33 +1,39 @@
 #include "domtree.h"
+#include "rpo.h"
 
 namespace compiler
 {
 
-auto DomTree::getUnreachedBBs(std::vector<std::shared_ptr<BasicBlock>> &reached)
+auto DomTree::getUnreachedBBs(std::vector<BasicBlock *> &reached)
 {
-    std::vector<std::shared_ptr<BasicBlock>> unreached;
-    for (auto bb : reached)
-        if (std::find(bbs.begin(), bbs.end(), bb) == bbs.end())
+    std::vector<BasicBlock *> unreached;
+    for (auto *bb : bbs)
+    {
+        if (std::find_if(reached.begin(), reached.end(), [bb](auto *elem) { return bb == elem; }) ==
+            reached.end())
+        {
+            // if bb was not found in reached array -> it is unreached
             unreached.push_back(bb);
+        }
+    }
+
     return unreached;
 }
 
-void DomTree::RunPassImpl(std::shared_ptr<Graph> graph)
+bool DomTree::runPassImpl()
 {
     assert(graph != nullptr && "nullptr graph in domtree pass");
 
-    graph->RunPass<RPO>();
-    bbs = graph->getRPOBBs();
+    graph->runPassRpo();
+    bbs = graph->getRpoBBs();
+    assert(bbs.size() > 0 && "empty graph in DomTree");
 
-    auto first_BB = bbs[0];
-    first_BB->addDominator(first_BB);
-
-    for (auto bb : bbs)
+    for (auto *bb : bbs)
     {
         bb->setVisited(true);
 
-        graph->RunPass<RPO>();
-        auto reached_bbs = graph->getRPOBBs();
+        graph->runPassRpo();
+        auto reached_bbs = graph->getRpoBBs();
         auto unreached_bbs = getUnreachedBBs(reached_bbs);
 
         for (auto unreached : unreached_bbs)
@@ -36,7 +42,8 @@ void DomTree::RunPassImpl(std::shared_ptr<Graph> graph)
         bb->setVisited(false);
     }
 
-    graph->RunPass<RPO>();
+    graph->runPassRpo();
+    return true;
 }
 
 } // namespace compiler

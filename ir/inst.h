@@ -16,8 +16,7 @@ class Graph;
 class Inst
 {
   public:
-    explicit Inst(size_t id_, InstType inst_type_ = InstType::NoneInst,
-                  std::shared_ptr<BasicBlock> bb_ = nullptr)
+    explicit Inst(size_t id_, InstType inst_type_ = InstType::NoneInst, BasicBlock *bb_ = nullptr)
         : inst_type(inst_type_), id(id_), bb(bb_)
     {}
 
@@ -43,7 +42,7 @@ class Inst
         return bb;
     }
 
-    void setBB(std::shared_ptr<BasicBlock> bb_) noexcept
+    void setBB(BasicBlock *bb_) noexcept
     {
         bb = bb_;
     }
@@ -79,7 +78,7 @@ class Inst
     InstType inst_type = InstType::NoneInst;
     size_t id = 0;
 
-    std::shared_ptr<BasicBlock> bb = nullptr;
+    BasicBlock *bb = nullptr;
     std::shared_ptr<Inst> prev = nullptr;
     std::shared_ptr<Inst> next = nullptr;
 };
@@ -105,8 +104,7 @@ class FixedInputsInst : public Inst
         inputs[num] = input;
     }
 
-    void replaceInput(std::shared_ptr<Inst> old_input,
-                      std::shared_ptr<Inst> new_input)
+    void replaceInput(std::shared_ptr<Inst> old_input, std::shared_ptr<Inst> new_input)
     {
         std::replace(inputs.begin(), inputs.end(), old_input, new_input);
     }
@@ -125,8 +123,7 @@ class BinaryInst final : public FixedInputsInst<2>
 {
   public:
     explicit BinaryInst(size_t id_, BinOpType op_ = BinOpType::NoneBinOp,
-                        std::shared_ptr<Inst> left = nullptr,
-                        std::shared_ptr<Inst> right = nullptr)
+                        std::shared_ptr<Inst> left = nullptr, std::shared_ptr<Inst> right = nullptr)
         : FixedInputsInst(id_, InstType::Binary), op(op_)
     {
         inputs[0] = left;
@@ -155,7 +152,10 @@ class BinaryInst final : public FixedInputsInst<2>
 
     void dump(std::ostream &out = std::cout) const override
     {
-        out << "\t" << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(op)] << " " << TYPE_NAME[static_cast<uint8_t>(getType())] << " v" << inputs[0]->getId() << ", v" << inputs[1]->getId() << std::endl;
+        out << "\t"
+            << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(op)] << " "
+            << TYPE_NAME[static_cast<uint8_t>(getType())] << " v" << inputs[0]->getId() << ", v"
+            << inputs[1]->getId() << std::endl;
     }
 
   private:
@@ -194,7 +194,10 @@ class UnaryInst final : public FixedInputsInst<1>
 
     void dump(std::ostream &out = std::cout) const override
     {
-        out << "\t" << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(op)] << " " << TYPE_NAME[static_cast<uint8_t>(getType())] << " v" << inputs[0]->getId() << std::endl;
+        out << "\t"
+            << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(op)] << " "
+            << TYPE_NAME[static_cast<uint8_t>(getType())] << " v" << inputs[0]->getId()
+            << std::endl;
     }
 
   private:
@@ -289,7 +292,9 @@ class ConstInst final : public Inst
 
     void dump(std::ostream &out = std::cout) const override
     {
-        out << "\t" << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " " << TYPE_NAME[static_cast<uint8_t>(data_type)] << " " << value << std::endl;
+        out << "\t"
+            << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " "
+            << TYPE_NAME[static_cast<uint8_t>(data_type)] << " " << value << std::endl;
     }
 
   private:
@@ -300,8 +305,7 @@ class ConstInst final : public Inst
 class ParamInst final : public Inst
 {
   public:
-    explicit ParamInst(size_t id_, DataType data_type_ = DataType::NoType,
-                       std::string name_ = "")
+    explicit ParamInst(size_t id_, DataType data_type_ = DataType::NoType, std::string name_ = "")
         : Inst(id_, InstType::Param), data_type(data_type_), name(name_)
     {}
 
@@ -329,7 +333,9 @@ class ParamInst final : public Inst
 
     void dump(std::ostream &out = std::cout) const override
     {
-        out << "\t" << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " " << TYPE_NAME[static_cast<uint8_t>(data_type)] << " " << name << std::endl;
+        out << "\t"
+            << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " "
+            << TYPE_NAME[static_cast<uint8_t>(data_type)] << " " << name << std::endl;
     }
 
   private:
@@ -341,7 +347,7 @@ class JumpInst final : public Inst
 {
   public:
     explicit JumpInst(size_t id_, JumpOpType op_ = JumpOpType::NoneJumpOp,
-                      std::shared_ptr<BasicBlock> target_ = nullptr)
+                      BasicBlock *target_ = nullptr)
         : Inst(id_, InstType::Jump), op(op_), target(target_)
     {}
 
@@ -357,12 +363,12 @@ class JumpInst final : public Inst
         op = op_;
     }
 
-    std::shared_ptr<BasicBlock> getTargetBB() const noexcept
+    BasicBlock *getTargetBB() const noexcept
     {
         return target;
     }
 
-    void setTargetBB(std::shared_ptr<BasicBlock> target_) noexcept
+    void setTargetBB(BasicBlock *target_) noexcept
     {
         target = target_;
     }
@@ -371,7 +377,7 @@ class JumpInst final : public Inst
 
   private:
     JumpOpType op = JumpOpType::NoneJumpOp;
-    std::shared_ptr<BasicBlock> target = nullptr;
+    BasicBlock *target = nullptr;
 };
 
 class CallInst final : public Inst
@@ -380,8 +386,7 @@ class CallInst final : public Inst
     explicit CallInst(size_t id_) : Inst(id_, InstType::Call)
     {}
 
-    explicit CallInst(std::initializer_list<std::shared_ptr<Inst>> args_)
-        : Inst(0, InstType::Call)
+    explicit CallInst(std::initializer_list<std::shared_ptr<Inst>> args_) : Inst(0, InstType::Call)
     {
         args.insert(args.end(), args_.begin(), args_.end());
     }
@@ -406,8 +411,7 @@ class CallInst final : public Inst
         args.push_back(arg);
     }
 
-    void replaceArg(std::shared_ptr<Inst> old_arg,
-                    std::shared_ptr<Inst> new_arg)
+    void replaceArg(std::shared_ptr<Inst> old_arg, std::shared_ptr<Inst> new_arg)
     {
         std::replace(args.begin(), args.end(), old_arg, new_arg);
     }
@@ -458,7 +462,9 @@ class CastInst final : public FixedInputsInst<1>
 
     void dump(std::ostream &out = std::cout) const override
     {
-        out << "\t" << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " v" << inputs[0]->getId() << " to " << TYPE_NAME[static_cast<uint8_t>(to)] << std::endl;
+        out << "\t"
+            << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " v"
+            << inputs[0]->getId() << " to " << TYPE_NAME[static_cast<uint8_t>(to)] << std::endl;
     }
 
   private:
@@ -468,8 +474,7 @@ class CastInst final : public FixedInputsInst<1>
 class MovInst final : public FixedInputsInst<1>
 {
   public:
-    explicit MovInst(size_t id_, size_t reg = 0,
-                     std::shared_ptr<Inst> input = nullptr)
+    explicit MovInst(size_t id_, size_t reg = 0, std::shared_ptr<Inst> input = nullptr)
         : FixedInputsInst(id_, InstType::Mov), reg_num(reg)
     {
         inputs[0] = input;
@@ -494,7 +499,10 @@ class MovInst final : public FixedInputsInst<1>
 
     void dump(std::ostream &out = std::cout) const override
     {
-        out << "\t" << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " " << TYPE_NAME[static_cast<uint8_t>(getType())] << " r" << reg_num << ", v" << inputs[0]->getId() << std::endl;
+        out << "\t"
+            << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " "
+            << TYPE_NAME[static_cast<uint8_t>(getType())] << " r" << reg_num << ", v"
+            << inputs[0]->getId() << std::endl;
     }
 
   private:
@@ -504,14 +512,12 @@ class MovInst final : public FixedInputsInst<1>
 class PhiInst : public Inst
 {
   public:
-    using phi_pair_t =
-        std::pair<std::shared_ptr<Inst>, std::shared_ptr<BasicBlock>>;
+    using phi_pair_t = std::pair<std::shared_ptr<Inst>, BasicBlock *>;
 
     explicit PhiInst(size_t id_) : Inst(id_, InstType::Phi)
     {}
 
-    explicit PhiInst(std::initializer_list<phi_pair_t> inputs_)
-        : Inst(0, InstType::Phi)
+    explicit PhiInst(std::initializer_list<phi_pair_t> inputs_) : Inst(0, InstType::Phi)
     {
         for (auto input : inputs_)
             inputs.push_back(input);
@@ -524,7 +530,7 @@ class PhiInst : public Inst
         return inputs;
     }
 
-    void addInput(std::shared_ptr<Inst> inst, std::shared_ptr<BasicBlock> bb)
+    void addInput(std::shared_ptr<Inst> inst, BasicBlock *bb)
     {
         inputs.push_back(std::make_pair(inst, bb));
     }
@@ -534,7 +540,7 @@ class PhiInst : public Inst
         inputs.push_back(pair);
     }
 
-    void replaceBB(size_t num, std::shared_ptr<BasicBlock> new_bb)
+    void replaceBB(size_t num, BasicBlock *new_bb)
     {
         assert(num < inputs.size() && "too big input number");
         inputs[num].second = new_bb;
@@ -550,9 +556,9 @@ class PhiInst : public Inst
     {
         for (auto &&input : inputs)
         {
-        	DataType type = input.first->getType();
-        	if (type != DataType::NoType)
-        		return type;
+            DataType type = input.first->getType();
+            if (type != DataType::NoType)
+                return type;
         }
         return DataType::NoType;
     }

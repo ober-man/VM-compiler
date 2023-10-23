@@ -13,8 +13,7 @@ class Graph;
 class BasicBlock
 {
   public:
-    BasicBlock(size_t id_, std::shared_ptr<Graph> graph_ = nullptr,
-               std::string name_ = "")
+    BasicBlock(size_t id_, std::shared_ptr<Graph> graph_ = nullptr, std::string name_ = "")
         : id(id_), graph(graph_), name(name_)
     {
         preds.reserve(BB_PREDS_NUM);
@@ -66,19 +65,29 @@ class BasicBlock
         graph = graph_;
     }
 
-    std::vector<std::shared_ptr<BasicBlock>> &getPreds() noexcept
+    std::vector<BasicBlock *> &getPreds() noexcept
     {
         return preds;
     }
 
-    std::shared_ptr<BasicBlock> getTrueSucc() noexcept
+    BasicBlock *getTrueSucc() const noexcept
     {
         return true_succ;
     }
 
-    std::shared_ptr<BasicBlock> getFalseSucc() noexcept
+    BasicBlock *getFalseSucc() const noexcept
     {
         return false_succ;
+    }
+
+    void setTrueSucc(BasicBlock *bb) noexcept
+    {
+        true_succ = bb;
+    }
+
+    void setFalseSucc(BasicBlock *bb) noexcept
+    {
+        false_succ = bb;
     }
 
     std::shared_ptr<Inst> getFirstInst() const noexcept
@@ -99,6 +108,11 @@ class BasicBlock
         return nullptr;
     }
 
+    std::vector<BasicBlock *> &getDominators()
+    {
+        return dominators;
+    }
+
     void pushBackInst(std::shared_ptr<Inst> inst)
     {
         assert(!inst->getPrev() && "inserted inst has predecessor");
@@ -108,7 +122,7 @@ class BasicBlock
 
         inst->setPrev(last_inst);
         inst->setNext(nullptr);
-        inst->setBB(std::make_shared<BasicBlock>(*this));
+        inst->setBB(this);
 
         if (last_inst != nullptr)
             last_inst->setNext(inst);
@@ -125,7 +139,7 @@ class BasicBlock
 
         inst->setPrev(nullptr);
         inst->setNext(first_inst);
-        inst->setBB(std::make_shared<BasicBlock>(*this));
+        inst->setBB(this);
 
         if (first_inst)
             first_inst->setPrev(inst);
@@ -136,8 +150,7 @@ class BasicBlock
     /**
      * Insert inst after prev_inst
      */
-    void insertAfter(std::shared_ptr<Inst> prev_inst,
-                     std::shared_ptr<Inst> inst)
+    void insertAfter(std::shared_ptr<Inst> prev_inst, std::shared_ptr<Inst> inst)
     {
         assert(!inst->getPrev() && "inserted inst has predecessor");
         assert(!inst->getNext() && "inserted inst has successor");
@@ -154,7 +167,7 @@ class BasicBlock
 
         inst->setNext(next_inst);
         inst->setPrev(prev_inst);
-        inst->setBB(std::make_shared<BasicBlock>(*this));
+        inst->setBB(this);
         ++bb_size;
     }
 
@@ -189,14 +202,13 @@ class BasicBlock
         --bb_size;
     }
 
-    void addPred(std::shared_ptr<BasicBlock> bb)
+    void addPred(BasicBlock *bb)
     {
-        assert(std::find(preds.begin(), preds.end(), bb) == preds.end() &&
-               "pred already existed");
+        assert(std::find(preds.begin(), preds.end(), bb) == preds.end() && "pred already existed");
         preds.push_back(bb);
     }
 
-    void addSucc(std::shared_ptr<BasicBlock> bb)
+    void addSucc(BasicBlock *bb)
     {
         if (true_succ == nullptr)
             true_succ = bb;
@@ -209,19 +221,18 @@ class BasicBlock
         }
     }
 
-    void removePred(std::shared_ptr<BasicBlock> bb)
+    void removePred(BasicBlock *bb)
     {
         preds.erase(std::find(preds.begin(), preds.end(), bb));
     }
 
     void removePred(size_t num)
     {
-        preds.erase(std::find_if(preds.begin(), preds.end(), [num](auto pred) {
-            return pred->getId() == num;
-        }));
+        preds.erase(std::find_if(preds.begin(), preds.end(),
+                                 [num](auto pred) { return pred->getId() == num; }));
     }
 
-    void removeSucc(std::shared_ptr<BasicBlock> bb)
+    void removeSucc(BasicBlock *bb)
     {
         if (true_succ == bb)
             true_succ = nullptr;
@@ -240,13 +251,11 @@ class BasicBlock
         else
             return;
     }
-    /*
-        void replacePred(std::shared_ptr<BasicBlock> pred,
-                         std::shared_ptr<BasicBlock> bb);
-        void replacePred(size_t num, std::shared_ptr<BasicBlock> bb);*/
 
-    void replaceSucc(std::shared_ptr<BasicBlock> succ,
-                     std::shared_ptr<BasicBlock> bb)
+    void replacePred(BasicBlock *pred, BasicBlock *bb);
+    void replacePred(size_t num, BasicBlock *bb);
+
+    void replaceSucc(BasicBlock *succ, BasicBlock *bb)
     {
         if (true_succ == succ)
             true_succ = bb;
@@ -259,7 +268,7 @@ class BasicBlock
         }
     }
 
-    void replaceSucc(size_t num, std::shared_ptr<BasicBlock> bb)
+    void replaceSucc(size_t num, BasicBlock *bb)
     {
         if (true_succ->getId() == num)
             true_succ = bb;
@@ -272,7 +281,7 @@ class BasicBlock
         }
     }
 
-    void addDominator(std::shared_ptr<BasicBlock> dom)
+    void addDominator(BasicBlock *dom)
     {
         dominators.push_back(dom);
     }
@@ -296,9 +305,9 @@ class BasicBlock
     std::string name = "";
     std::shared_ptr<Graph> graph = nullptr;
 
-    std::vector<std::shared_ptr<BasicBlock>> preds;
-    std::shared_ptr<BasicBlock> true_succ;
-    std::shared_ptr<BasicBlock> false_succ;
+    std::vector<BasicBlock *> preds;
+    BasicBlock *true_succ;
+    BasicBlock *false_succ;
 
     std::shared_ptr<Inst> first_inst = nullptr;
     std::shared_ptr<Inst> last_inst = nullptr;
@@ -306,7 +315,7 @@ class BasicBlock
     // TODO: make marker class
     bool visited = false;
 
-    std::vector<std::shared_ptr<BasicBlock>> dominators;
+    std::vector<BasicBlock *> dominators;
 };
 
 } // namespace compiler

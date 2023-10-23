@@ -1,6 +1,6 @@
 #pragma once
 
-#include "passmanager.h"
+#include "pass.h"
 
 namespace compiler
 {
@@ -8,16 +8,22 @@ namespace compiler
 class DomTree final : public Analysis
 {
   public:
-    DomTree() = default;
-    ~DomTree() = default;
+    DomTree(Graph *g) : Analysis(g)
+    {}
+    ~DomTree() override = default;
 
-    void RunPassImpl(std::shared_ptr<Graph> graph) override;
+    bool runPassImpl() override;
+
+    std::string getAnalysisName() const noexcept override
+    {
+        return "DomTree";
+    }
 
   private:
-    auto getUnreachedBBs(std::vector<std::shared_ptr<BasicBlock>> &reached);
+    auto getUnreachedBBs(std::vector<BasicBlock *> &reached);
 
   private:
-    std::vector<std::shared_ptr<BasicBlock>> bbs;
+    std::vector<BasicBlock *> bbs;
 };
 
 } // namespace compiler

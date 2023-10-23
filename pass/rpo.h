@@ -1,26 +1,30 @@
 #pragma once
 
-#include "passmanager.h"
+#include "pass.h"
 
 namespace compiler
 {
 
-class RPO final : public Analysis
+// TODO: fix algo when implement fast DomTree
+class Rpo final : public Analysis
 {
   public:
-    RPO()
+    Rpo(Graph *g);
+    ~Rpo() override = default;
+
+    bool runPassImpl() override;
+
+    std::string getAnalysisName() const noexcept override
     {
-        rpo_bbs.reserve(GRAPH_BB_NUM);
+        return "RPO";
     }
-    ~RPO() = default;
-
-    void RunPassImpl(std::shared_ptr<Graph> graph) override;
 
   private:
-    void VisitBasicBlock(std::shared_ptr<BasicBlock> bb);
+    void visitBasicBlock(BasicBlock *bb);
 
   private:
-    std::vector<std::shared_ptr<BasicBlock>> rpo_bbs;
+    // size_t cur_num;
+    std::vector<BasicBlock *> rpo_bbs;
 };
 
 } // namespace compiler

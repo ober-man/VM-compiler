@@ -12,7 +12,7 @@ class PassManager;
 class Rpo;
 class DomTree;
 class Loop;
-class Loop_Analyzer;
+class LoopAnalyzer;
 
 class Graph
 {
@@ -23,15 +23,9 @@ class Graph
         rpo_BBs.reserve(GRAPH_BB_NUM);
         graph_size = 0;
         pm = std::make_unique<PassManager>(this);
+        mm = std::make_unique<MarkerManager>();
     }
-
-    ~Graph()
-    {
-        for (auto *bb : BBs)
-            delete bb;
-        if (loop != nullptr)
-            delete loop;
-    }
+    ~Graph();
 
     size_t size() const noexcept
     {
@@ -68,6 +62,16 @@ class Graph
         rpo_BBs = rpo;
     }
 
+    Loop* getRootLoop() const noexcept
+    {
+    	return root_loop;
+    }
+
+    void setRootLoop(Loop* loop_) noexcept
+    {
+    	root_loop = loop_;
+    }
+
     BasicBlock *getFirstBB() const noexcept
     {
         if (graph_size == 0)
@@ -90,51 +94,6 @@ class Graph
             return BBs[id];
     }
 
-    void insertBB(BasicBlock *bb)
-    {
-        if (graph_size == 0)
-        {
-            BBs.push_back(bb);
-            ++graph_size;
-            return;
-        }
-
-        auto *pred = BBs[graph_size - 1];
-        pred->addSucc(bb);
-        bb->addPred(pred);
-        BBs.push_back(bb);
-        ++graph_size;
-    }
-
-    /**
-     * Insert bb after prev_bb
-     */
-    void insertBBAfter(BasicBlock *prev_bb, BasicBlock *bb, bool is_true_succ = true)
-    {
-        if (is_true_succ)
-        {
-            auto *true_succ = prev_bb->getTrueSucc();
-            prev_bb->setTrueSucc(bb);
-            bb->addPred(prev_bb);
-
-            if (true_succ != nullptr)
-                true_succ->addPred(bb);
-        }
-        else
-        {
-            auto *false_succ = prev_bb->getFalseSucc();
-            prev_bb->setFalseSucc(bb);
-            bb->addPred(prev_bb);
-
-            if (false_succ != nullptr)
-                false_succ->addPred(bb);
-        }
-        BBs.push_back(bb);
-        ++graph_size;
-    }
-
-    void addEdge(BasicBlock *prev_bb, BasicBlock *bb);
-
     void removeBB(BasicBlock *bb)
     {
         auto it = BBs.erase(std::find(BBs.begin(), BBs.end(), bb));
@@ -148,8 +107,14 @@ class Graph
         assert(it != BBs.end() && "remove not existing bb");
     }
 
+    void insertBB(BasicBlock *bb);
+    void insertBBAfter(BasicBlock *prev_bb, BasicBlock *bb, bool is_true_succ = true);
+    void addEdge(BasicBlock *prev_bb, BasicBlock *bb);
     void replaceBB(BasicBlock *bb, BasicBlock *new_bb);
     void replaceBB(size_t num, BasicBlock *new_bb);
+
+    marker_t getNewMarker();
+    void deleteMarker(marker_t marker);
 
     void dump(std::ostream &out = std::cout)
     {
@@ -162,12 +127,12 @@ class Graph
         // TODO after implementing fast DomTree
     }
 
-    // template <typename PassName>
+    // template <typename PassName, typename... Args>
     // TODO: fix PassManager
-    // [some template magic was broken and there is crutch]
-    void runPassRpo();
-    void runPassDomTree();
-    void runPassLoopAnalyzer();
+    // [some template magic was broken and there is a crutch]
+    bool runPassRpo(marker_t marker = 0);
+    bool runPassDomTree();
+    bool runPassLoopAnalyzer();
 
   private:
     std::string func_name = "";
@@ -177,8 +142,10 @@ class Graph
     std::vector<BasicBlock *> rpo_BBs;
 
     std::unique_ptr<PassManager> pm = nullptr;
-    Loop *loop = nullptr;
+    std::unique_ptr<MarkerManager> mm = nullptr;
+    Loop *root_loop = nullptr;
 };
+
 /*
 template <typename PassName>
 void Graph::runPass()

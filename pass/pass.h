@@ -50,12 +50,17 @@ class Analysis : public Pass
 
     // some passes can invalidate analysis
     // to fix it rerun runImpl()
-    void invalidateAnalysis() noexcept
+    virtual void invalidateAnalysis() noexcept
     {
         is_valid = false;
     }
 
-  private:
+    bool isValid() const noexcept
+    {
+        return is_valid;
+    }
+
+  protected:
     bool is_valid = false;
 };
 

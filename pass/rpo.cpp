@@ -3,7 +3,7 @@
 namespace compiler
 {
 
-Rpo::Rpo(Graph *g) : Analysis(g)
+Rpo::Rpo(Graph *g, marker_t marker) : Analysis(g), visited(marker)
 {
     size_t size = g->size();
     rpo_bbs.reserve(size);
@@ -14,13 +14,13 @@ Rpo::Rpo(Graph *g) : Analysis(g)
 void Rpo::visitBasicBlock(BasicBlock *bb)
 {
     assert(bb != nullptr && "nullptr bb in RPO pass");
-    if (bb->isVisited())
+    if (bb->isMarked(visited))
         return;
 
     auto *true_succ = bb->getTrueSucc();
     auto *false_succ = bb->getFalseSucc();
 
-    bb->setVisited();
+    bb->setMarker(visited);
 
     if (true_succ != nullptr)
         visitBasicBlock(true_succ);
@@ -35,6 +35,9 @@ bool Rpo::runPassImpl()
 {
     assert(graph != nullptr && "nullptr graph in RPO pass");
 
+    if (visited == NO_MARKER)
+        visited = graph->getNewMarker();
+
     auto bbs = graph->getBBs();
     assert(bbs.size() > 0 && "empty graph in RPO");
 
@@ -45,7 +48,9 @@ bool Rpo::runPassImpl()
     graph->setRPOBBs(rpo_bbs);
 
     for (auto *bb : rpo_bbs)
-        bb->setVisited(false);
+        bb->resetMarker(visited);
+
+    graph->deleteMarker(visited);
     return true;
 }
 

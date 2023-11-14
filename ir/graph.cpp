@@ -1,19 +1,86 @@
 #include "graph.h"
 #include "pass/domtree.h"
 #include "pass/rpo.h"
+#include "pass/loop_analyzer.h"
 
 namespace compiler
 {
 
-// template <typename PassName>
-void Graph::runPassRpo()
+Graph::~Graph()
 {
-    pm->runPassRpo();
+    for (auto* bb : BBs)
+        delete bb;
+    if (root_loop != nullptr)
+        delete root_loop;
 }
 
-void Graph::runPassDomTree()
+// template <typename PassName, typename... Args>
+bool Graph::runPassRpo(marker_t marker)
 {
-    pm->runPassDomTree();
+    return pm->runPassRpo(marker);
+}
+
+bool Graph::runPassDomTree()
+{
+    return pm->runPassDomTree();
+}
+
+bool Graph::runPassLoopAnalyzer()
+{
+    return pm->runPassLoopAnalyzer();
+}
+
+marker_t Graph::getNewMarker()
+{
+    return mm->getNewMarker();
+}
+
+void Graph::deleteMarker(marker_t marker)
+{
+    mm->deleteMarker(marker);
+}
+
+void Graph::insertBB(BasicBlock *bb)
+{
+    if (graph_size == 0)
+    {
+        BBs.push_back(bb);
+        ++graph_size;
+        return;
+    }
+
+    auto *pred = BBs[graph_size - 1];
+    pred->addSucc(bb);
+    bb->addPred(pred);
+    BBs.push_back(bb);
+    ++graph_size;
+}
+
+/**
+ * Insert bb after prev_bb
+ */
+void Graph::insertBBAfter(BasicBlock *prev_bb, BasicBlock *bb, bool is_true_succ)
+{
+    if (is_true_succ)
+    {
+        auto *true_succ = prev_bb->getTrueSucc();
+        prev_bb->setTrueSucc(bb);
+        bb->addPred(prev_bb);
+
+        if (true_succ != nullptr)
+            true_succ->addPred(bb);
+    }
+    else
+    {
+        auto *false_succ = prev_bb->getFalseSucc();
+        prev_bb->setFalseSucc(bb);
+        bb->addPred(prev_bb);
+
+        if (false_succ != nullptr)
+            false_succ->addPred(bb);
+    }
+    BBs.push_back(bb);
+    ++graph_size;
 }
 
 void Graph::addEdge(BasicBlock *prev_bb, BasicBlock *bb)

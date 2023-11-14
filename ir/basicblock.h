@@ -1,6 +1,8 @@
 #pragma once
 
 #include "inst.h"
+#include "graph.h"
+#include "marker.h"
 
 namespace compiler
 {
@@ -9,6 +11,7 @@ namespace compiler
 #define BB_DOMINATED_NUM 5
 
 class Graph;
+class Loop;
 
 class BasicBlock
 {
@@ -16,12 +19,22 @@ class BasicBlock
     BasicBlock(size_t id_, std::shared_ptr<Graph> graph_ = nullptr, std::string name_ = "")
         : id(id_), graph(graph_), name(name_)
     {
+        bb_size = 0;
         preds.reserve(BB_PREDS_NUM);
         dominators.reserve(BB_DOMINATED_NUM);
-        bb_size = 0;
+        markers = std::make_unique<MarkerSet>();
     }
 
-    ~BasicBlock() = default;
+    ~BasicBlock()
+    {
+        Inst* inst = first_inst;
+        while (inst != nullptr)
+        {
+            first_inst = inst->getNext();
+            delete inst;
+            inst = first_inst;
+        }
+    }
 
     size_t getId() const noexcept
     {
@@ -90,17 +103,17 @@ class BasicBlock
         false_succ = bb;
     }
 
-    std::shared_ptr<Inst> getFirstInst() const noexcept
+    Inst* getFirstInst() const noexcept
     {
         return first_inst;
     }
 
-    std::shared_ptr<Inst> getLastInst() const noexcept
+    Inst* getLastInst() const noexcept
     {
         return last_inst;
     }
 
-    std::shared_ptr<Inst> getInst(size_t id)
+    Inst* getInst(size_t id)
     {
         for (auto inst = first_inst; inst != nullptr; inst = inst->getNext())
             if (inst->getId() == id)
@@ -113,7 +126,22 @@ class BasicBlock
         return dominators;
     }
 
-    void pushBackInst(std::shared_ptr<Inst> inst)
+    BasicBlock* getIdom() const noexcept
+    {
+        return idom;
+    }
+
+    Loop* getLoop() const noexcept
+    {
+        return loop;
+    }
+
+    void setLoop(Loop* loop_) noexcept
+    {
+        loop = loop_;
+    }
+
+    void pushBackInst(Inst* inst)
     {
         assert(!inst->getPrev() && "inserted inst has predecessor");
 
@@ -130,7 +158,7 @@ class BasicBlock
         ++bb_size;
     }
 
-    void pushFrontInst(std::shared_ptr<Inst> inst)
+    void pushFrontInst(Inst* inst)
     {
         assert(!inst->getNext() && "inserted inst has successor");
 
@@ -150,7 +178,7 @@ class BasicBlock
     /**
      * Insert inst after prev_inst
      */
-    void insertAfter(std::shared_ptr<Inst> prev_inst, std::shared_ptr<Inst> inst)
+    void insertAfter(Inst* prev_inst, Inst* inst)
     {
         assert(!inst->getPrev() && "inserted inst has predecessor");
         assert(!inst->getNext() && "inserted inst has successor");
@@ -191,7 +219,7 @@ class BasicBlock
         --bb_size;
     }
 
-    void removeInst(std::shared_ptr<Inst> inst)
+    void removeInst(Inst* inst)
     {
         auto next_inst = inst->getNext();
         auto prev_inst = inst->getPrev();
@@ -281,23 +309,33 @@ class BasicBlock
         }
     }
 
+    void setMarker(marker_t marker);
+    void resetMarker(marker_t marker);
+    bool isMarked(marker_t marker);
+
     void addDominator(BasicBlock *dom)
     {
         dominators.push_back(dom);
     }
 
+    // return true, if *this is a dominator of bb
+    bool isDominator(BasicBlock* bb)
+    {
+    	auto& doms = bb->getDominators();
+    	return std::find(doms.begin(), doms.end(), this) != doms.end();
+    }
+
+    void countIdom()
+    {
+        size_t dom_num = dominators.size();
+        if (dom_num == 1)
+            idom = dominators[dominators.size() - 1];
+        else
+            idom = dominators[dominators.size() - 2];
+    }
+
     void dump(std::ostream &out = std::cout) const;
     void dumpDomTree(std::ostream &out = std::cout) const;
-
-    bool isVisited() const noexcept
-    {
-        return visited;
-    }
-
-    void setVisited(bool v = true) noexcept
-    {
-        visited = v;
-    }
 
   private:
     size_t id = 0;
@@ -309,13 +347,14 @@ class BasicBlock
     BasicBlock *true_succ;
     BasicBlock *false_succ;
 
-    std::shared_ptr<Inst> first_inst = nullptr;
-    std::shared_ptr<Inst> last_inst = nullptr;
-
-    // TODO: make marker class
-    bool visited = false;
+    Inst* first_inst = nullptr;
+    Inst* last_inst = nullptr;
 
     std::vector<BasicBlock *> dominators;
+    BasicBlock* idom = nullptr;
+
+    std::unique_ptr<MarkerSet> markers;
+    Loop *loop = nullptr;
 };
 
 } // namespace compiler

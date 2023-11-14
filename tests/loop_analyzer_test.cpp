@@ -1,24 +1,24 @@
 #include "ir/graph.h"
-#include "pass/domtree.h"
+#include "pass/loop_analyzer.h"
 #include "gtest/gtest.h"
 
 using namespace compiler;
 
-void checkDominators(BasicBlock *bb, std::vector<int> expected)
+void checkLoopBlocks(Loop *loop, std::vector<int> expected)
 {
-    auto &doms = bb->getDominators();
-    size_t size = doms.size();
+    auto &bbs = loop->getBody();
+    size_t size = bbs.size();
     ASSERT_EQ(size, expected.size());
 /*
     auto compare = [](BasicBlock* bb1, BasicBlock* bb2)
                    {
                        return bb1->getId() < bb2.getId();
                    };
-    std::sort(doms.begin(), doms.end(), compare);
+    std::sort(bbs.begin(), bbs.end(), compare);
     std::sort(expected.begin(), expected.end());
 */
     for (size_t i = 0; i < size; ++i)
-        ASSERT_EQ(doms[i]->getId(), expected[i]);
+        ASSERT_EQ(bbs[i]->getId(), expected[i]);
 }
 
 /**
@@ -34,9 +34,9 @@ void checkDominators(BasicBlock *bb, std::vector<int> expected)
  *                        v     |
  *                       [5]----/
  */
-TEST(DOMTREE_TEST, TEST1)
+TEST(LOOP_TEST, TEST1)
 {
-    auto graph = std::make_shared<Graph>("dom_tree_test1");
+    auto graph = std::make_shared<Graph>("loop_test1");
 
     auto *bb1 = new BasicBlock{1, graph};
     auto *bb2 = new BasicBlock{2, graph};
@@ -52,22 +52,19 @@ TEST(DOMTREE_TEST, TEST1)
     bb5->addSucc(bb2);
     //graph->dump();
 
-    graph->runPassDomTree();
+    graph->runPassLoopAnalyzer();
 
-    auto& bbs = graph->getRpoBBs();
-    ASSERT_EQ(bbs.size(), 5);
+    auto* root = graph->getRootLoop();
+    ASSERT_EQ(root->getOuterLoop(), nullptr);
+    checkLoopBlocks(root, {1, 3});
 
-    checkDominators(bb1, {1});
-    checkDominators(bb2, {1, 2});
-    checkDominators(bb3, {1, 2, 3});
-    checkDominators(bb4, {1, 2, 4});
-    checkDominators(bb5, {1, 2, 4, 5});
+    auto& inner = root->getInnerLoops();
+    ASSERT_EQ(inner.size(), 1);
 
-    ASSERT_EQ(bb1->getIdom()->getId(), 1);
-    ASSERT_EQ(bb2->getIdom()->getId(), 1);
-    ASSERT_EQ(bb3->getIdom()->getId(), 2);
-    ASSERT_EQ(bb4->getIdom()->getId(), 2);
-    ASSERT_EQ(bb5->getIdom()->getId(), 4);
+    auto loop_5_2 = inner[0];
+    ASSERT_EQ(loop_5_2->getOuterLoop(), root);
+    ASSERT_EQ(loop_5_2->getInnerLoops().size(), 0);
+    checkLoopBlocks(loop_5_2, {2, 5, 4});
 }
 
 /**
@@ -83,9 +80,9 @@ TEST(DOMTREE_TEST, TEST1)
  *             |     v
  *             \--->[5]
  */
-TEST(DOMTREE_TEST, TEST2)
+TEST(LOOP_TEST, TEST2)
 {
-    auto graph = std::make_shared<Graph>("dom_tree_test2");
+    auto graph = std::make_shared<Graph>("loop_test2");
 
     auto *bb1 = new BasicBlock{1, graph};
     auto *bb2 = new BasicBlock{2, graph};
@@ -104,24 +101,19 @@ TEST(DOMTREE_TEST, TEST2)
     graph->addEdge(bb6, bb2);
     //graph->dump();
 
-    graph->runPassDomTree();
+    graph->runPassLoopAnalyzer();
 
-    auto& bbs = graph->getRpoBBs();
-    ASSERT_EQ(bbs.size(), 6);
+    auto* root = graph->getRootLoop();
+    ASSERT_EQ(root->getOuterLoop(), nullptr);
+    checkLoopBlocks(root, {1, 5});
 
-    checkDominators(bb1, {1});
-    checkDominators(bb2, {1, 2});
-    checkDominators(bb3, {1, 2, 3});
-    checkDominators(bb4, {1, 2, 3, 4});
-    checkDominators(bb5, {1, 2, 3, 5});
-    checkDominators(bb6, {1, 2, 3, 4, 6});
+    auto& inner = root->getInnerLoops();
+    ASSERT_EQ(inner.size(), 1);
 
-    ASSERT_EQ(bb1->getIdom()->getId(), 1);
-    ASSERT_EQ(bb2->getIdom()->getId(), 1);
-    ASSERT_EQ(bb3->getIdom()->getId(), 2);
-    ASSERT_EQ(bb4->getIdom()->getId(), 3);
-    ASSERT_EQ(bb5->getIdom()->getId(), 3);
-    ASSERT_EQ(bb6->getIdom()->getId(), 4);
+    auto loop_6_2 = inner[0];
+    ASSERT_EQ(loop_6_2->getOuterLoop(), root);
+    ASSERT_EQ(loop_6_2->getInnerLoops().size(), 0);
+    checkLoopBlocks(loop_6_2, {2, 6, 4, 3});
 }
 
 /**
@@ -143,9 +135,9 @@ TEST(DOMTREE_TEST, TEST2)
  *                  [8]------------/
  *
  */
-TEST(DOMTREE_TEST, TEST3)
+TEST(LOOP_TEST, TEST3)
 {
-    auto graph = std::make_shared<Graph>("dom_tree_test3");
+    auto graph = std::make_shared<Graph>("loop_test3");
 
     auto *bb1 = new BasicBlock{1, graph};
     auto *bb2 = new BasicBlock{2, graph};
@@ -169,28 +161,24 @@ TEST(DOMTREE_TEST, TEST3)
     graph->addEdge(bb8, bb1);
     // graph->dump();
 
-    graph->runPassDomTree();
+    graph->runPassLoopAnalyzer();
 
-    auto& bbs = graph->getRpoBBs();
-    ASSERT_EQ(bbs.size(), 8);
+    auto* root = graph->getRootLoop();
+    ASSERT_EQ(root->getOuterLoop(), nullptr);
+    checkLoopBlocks(root, {6});
 
-    checkDominators(bb1, {1});
-    checkDominators(bb2, {1, 2});
-    checkDominators(bb3, {1, 2, 3});
-    checkDominators(bb4, {1, 2, 4});
-    checkDominators(bb5, {1, 2, 5});
-    checkDominators(bb6, {1, 2, 3, 6});
-    checkDominators(bb7, {1, 2, 5, 7});
-    checkDominators(bb8, {1, 2, 5, 7, 8});
+    auto& inner = root->getInnerLoops();
+    ASSERT_EQ(inner.size(), 1);
+    
+    auto loop_8_1 = inner[0];
+    ASSERT_EQ(loop_8_1->getOuterLoop(), root);
+    ASSERT_EQ(loop_8_1->getInnerLoops().size(), 1);
+    checkLoopBlocks(loop_8_1, {1, 8, 7, 5, 3, 2, 4});
 
-    ASSERT_EQ(bb1->getIdom()->getId(), 1);
-    ASSERT_EQ(bb2->getIdom()->getId(), 1);
-    ASSERT_EQ(bb3->getIdom()->getId(), 2);
-    ASSERT_EQ(bb4->getIdom()->getId(), 2);
-    ASSERT_EQ(bb5->getIdom()->getId(), 2);
-    ASSERT_EQ(bb6->getIdom()->getId(), 3);
-    ASSERT_EQ(bb7->getIdom()->getId(), 5);
-    ASSERT_EQ(bb8->getIdom()->getId(), 7);
+    auto loop_7_2 = loop_8_1->getInnerLoops()[0];
+    ASSERT_EQ(loop_7_2->getOuterLoop(), loop_8_1);
+    ASSERT_EQ(loop_7_2->getInnerLoops().size(), 0);
+    checkLoopBlocks(loop_7_2, {2, 7, 5, 3, 4});
 }
 
 /**
@@ -206,9 +194,9 @@ TEST(DOMTREE_TEST, TEST3)
  *             |      v      v
  *             \---->[4]<---[7]
  */
-TEST(DOMTREE_TEST, TEST4)
+TEST(LOOP_TEST, TEST4)
 {
-    auto graph = std::make_shared<Graph>("dom_tree_test4");
+    auto graph = std::make_shared<Graph>("loop_test4");
 
     auto *bb1 = new BasicBlock{1, graph};
     auto *bb2 = new BasicBlock{2, graph};
@@ -229,26 +217,18 @@ TEST(DOMTREE_TEST, TEST4)
     graph->addEdge(bb7, bb4);
     //graph->dump();
 
-    graph->runPassDomTree();
+    graph->runPassRpo();
 
     auto& bbs = graph->getRpoBBs();
+
     ASSERT_EQ(bbs.size(), 7);
-
-    checkDominators(bb1, {1});
-    checkDominators(bb2, {1, 2});
-    checkDominators(bb3, {1, 2, 3});
-    checkDominators(bb4, {1, 2, 4});
-    checkDominators(bb5, {1, 2, 6, 5});
-    checkDominators(bb6, {1, 2, 6});
-    checkDominators(bb7, {1, 2, 6, 7});
-
-    ASSERT_EQ(bb1->getIdom()->getId(), 1);
-    ASSERT_EQ(bb2->getIdom()->getId(), 1);
-    ASSERT_EQ(bb3->getIdom()->getId(), 2);
-    ASSERT_EQ(bb4->getIdom()->getId(), 2);
-    ASSERT_EQ(bb5->getIdom()->getId(), 6);
-    ASSERT_EQ(bb6->getIdom()->getId(), 2);
-    ASSERT_EQ(bb7->getIdom()->getId(), 6);
+    ASSERT_EQ(bbs[0]->getId(), 1);
+    ASSERT_EQ(bbs[1]->getId(), 2);
+    ASSERT_EQ(bbs[2]->getId(), 6);
+    ASSERT_EQ(bbs[3]->getId(), 7);
+    ASSERT_EQ(bbs[4]->getId(), 5);
+    ASSERT_EQ(bbs[5]->getId(), 3);
+    ASSERT_EQ(bbs[6]->getId(), 4);
 }
 
 /**
@@ -276,9 +256,9 @@ TEST(DOMTREE_TEST, TEST4)
  *                          v
  *                         [10]
  */
-TEST(DOMTREE_TEST, TEST5)
+TEST(LOOP_TEST, TEST5)
 {
-    auto graph = std::make_shared<Graph>("dom_tree_test5");
+    auto graph = std::make_shared<Graph>("loop_test5");
 
     auto *bb1 = new BasicBlock{1, graph};
     auto *bb2 = new BasicBlock{2, graph};
@@ -309,34 +289,22 @@ TEST(DOMTREE_TEST, TEST5)
     graph->addEdge(bb11, bb3);
     //graph->dump();
 
-    graph->runPassDomTree();
+    graph->runPassRpo();
 
     auto& bbs = graph->getRpoBBs();
+
     ASSERT_EQ(bbs.size(), 11);
-
-    checkDominators(bb1, {1});
-    checkDominators(bb2, {1, 2});
-    checkDominators(bb3, {1, 2, 3});
-    checkDominators(bb4, {1, 2, 3, 4});
-    checkDominators(bb5, {1, 2, 3, 4, 5});
-    checkDominators(bb6, {1, 2, 3, 4, 5, 6});
-    checkDominators(bb7, {1, 2, 3, 4, 5, 6, 7});
-    checkDominators(bb8, {1, 2, 3, 4, 5, 6, 7, 8});
-    checkDominators(bb9, {1, 2, 3, 4, 5, 6, 7, 9});
-    checkDominators(bb10, {1, 2, 3, 4, 5, 6, 7, 9, 10});
-    checkDominators(bb11, {1, 2, 11});
-
-    ASSERT_EQ(bb1->getIdom()->getId(), 1);
-    ASSERT_EQ(bb2->getIdom()->getId(), 1);
-    ASSERT_EQ(bb3->getIdom()->getId(), 2);
-    ASSERT_EQ(bb4->getIdom()->getId(), 3);
-    ASSERT_EQ(bb5->getIdom()->getId(), 4);
-    ASSERT_EQ(bb6->getIdom()->getId(), 5);
-    ASSERT_EQ(bb7->getIdom()->getId(), 6);
-    ASSERT_EQ(bb8->getIdom()->getId(), 7);
-    ASSERT_EQ(bb9->getIdom()->getId(), 7);
-    ASSERT_EQ(bb10->getIdom()->getId(), 9);
-    ASSERT_EQ(bb11->getIdom()->getId(), 2);
+    ASSERT_EQ(bbs[0]->getId(), 1);
+    ASSERT_EQ(bbs[1]->getId(), 2);
+    ASSERT_EQ(bbs[2]->getId(), 11);
+    ASSERT_EQ(bbs[3]->getId(), 3);
+    ASSERT_EQ(bbs[4]->getId(), 4);
+    ASSERT_EQ(bbs[5]->getId(), 5);
+    ASSERT_EQ(bbs[6]->getId(), 6);
+    ASSERT_EQ(bbs[7]->getId(), 7);
+    ASSERT_EQ(bbs[8]->getId(), 9);
+    ASSERT_EQ(bbs[9]->getId(), 10);
+    ASSERT_EQ(bbs[10]->getId(), 8);
 }
 
 /**
@@ -360,9 +328,9 @@ TEST(DOMTREE_TEST, TEST5)
  *               |         v
  *               \------->[9]
  */
-TEST(DOMTREE_TEST, TEST6)
+TEST(LOOP_TEST, TEST6)
 {
-    auto graph = std::make_shared<Graph>("dom_tree_test6");
+    auto graph = std::make_shared<Graph>("loop_test6");
 
     auto *bb1 = new BasicBlock{1, graph};
     auto *bb2 = new BasicBlock{2, graph};
@@ -387,31 +355,20 @@ TEST(DOMTREE_TEST, TEST6)
     graph->addEdge(bb6, bb2);
     graph->addEdge(bb7, bb9);
     graph->addEdge(bb7, bb3);
-    graph->addEdge(bb8, bb7);
     // graph->dump();
 
-    graph->runPassDomTree();
+    graph->runPassRpo();
 
     auto& bbs = graph->getRpoBBs();
+
     ASSERT_EQ(bbs.size(), 9);
-
-    checkDominators(bb1, {1});
-    checkDominators(bb2, {1, 2});
-    checkDominators(bb3, {1, 2, 3});
-    checkDominators(bb4, {1, 2, 4});
-    checkDominators(bb5, {1, 2, 5});
-    checkDominators(bb6, {1, 2, 5, 6});
-    checkDominators(bb7, {1, 2, 7});
-    checkDominators(bb8, {1, 2, 5, 6, 8});
-    checkDominators(bb9, {1, 2, 9});
-
-    ASSERT_EQ(bb1->getIdom()->getId(), 1);
-    ASSERT_EQ(bb2->getIdom()->getId(), 1);
-    ASSERT_EQ(bb3->getIdom()->getId(), 2);
-    ASSERT_EQ(bb4->getIdom()->getId(), 2);
-    ASSERT_EQ(bb5->getIdom()->getId(), 2);
-    ASSERT_EQ(bb6->getIdom()->getId(), 5);
-    ASSERT_EQ(bb7->getIdom()->getId(), 2);
-    ASSERT_EQ(bb8->getIdom()->getId(), 6);
-    ASSERT_EQ(bb9->getIdom()->getId(), 2);
+    ASSERT_EQ(bbs[0]->getId(), 1);
+    ASSERT_EQ(bbs[1]->getId(), 2);
+    ASSERT_EQ(bbs[2]->getId(), 5);
+    ASSERT_EQ(bbs[3]->getId(), 6);
+    ASSERT_EQ(bbs[4]->getId(), 8);
+    ASSERT_EQ(bbs[5]->getId(), 3);
+    ASSERT_EQ(bbs[6]->getId(), 4);
+    ASSERT_EQ(bbs[7]->getId(), 7);
+    ASSERT_EQ(bbs[8]->getId(), 9);
 }

@@ -47,22 +47,22 @@ class Inst
         bb = bb_;
     }
 
-    std::shared_ptr<Inst> getNext() const noexcept
+    Inst* getNext() const noexcept
     {
         return next;
     }
 
-    void setNext(std::shared_ptr<Inst> next_) noexcept
+    void setNext(Inst* next_) noexcept
     {
         next = next_;
     }
 
-    std::shared_ptr<Inst> getPrev() const noexcept
+    Inst* getPrev() const noexcept
     {
         return prev;
     }
 
-    void setPrev(std::shared_ptr<Inst> prev_) noexcept
+    void setPrev(Inst* prev_) noexcept
     {
         prev = prev_;
     }
@@ -79,8 +79,8 @@ class Inst
     size_t id = 0;
 
     BasicBlock *bb = nullptr;
-    std::shared_ptr<Inst> prev = nullptr;
-    std::shared_ptr<Inst> next = nullptr;
+    Inst* prev = nullptr;
+    Inst* next = nullptr;
 };
 
 std::string getDataTypeString(DataType type);
@@ -92,38 +92,38 @@ class FixedInputsInst : public Inst
     using Inst::Inst;
     virtual ~FixedInputsInst() = default;
 
-    std::shared_ptr<Inst> getInput(size_t num) const
+    Inst* getInput(size_t num) const
     {
         assert(num < N && "too big input number");
         return inputs[num];
     }
 
-    void setInput(std::shared_ptr<Inst> input, size_t num)
+    void setInput(Inst* input, size_t num)
     {
         assert(num < N && "too big input number");
         inputs[num] = input;
     }
 
-    void replaceInput(std::shared_ptr<Inst> old_input, std::shared_ptr<Inst> new_input)
+    void replaceInput(Inst* old_input, Inst* new_input)
     {
         std::replace(inputs.begin(), inputs.end(), old_input, new_input);
     }
 
-    void replaceInput(size_t num, std::shared_ptr<Inst> new_input)
+    void replaceInput(size_t num, Inst* new_input)
     {
         assert(num < N && "too big input number");
         inputs[num] = new_input;
     }
 
   protected:
-    std::array<std::shared_ptr<Inst>, N> inputs;
+    std::array<Inst*, N> inputs;
 };
 
 class BinaryInst final : public FixedInputsInst<2>
 {
   public:
     explicit BinaryInst(size_t id_, BinOpType op_ = BinOpType::NoneBinOp,
-                        std::shared_ptr<Inst> left = nullptr, std::shared_ptr<Inst> right = nullptr)
+                        Inst* left = nullptr, Inst* right = nullptr)
         : FixedInputsInst(id_, InstType::Binary), op(op_)
     {
         inputs[0] = left;
@@ -169,7 +169,7 @@ class UnaryInst final : public FixedInputsInst<1>
 {
   public:
     explicit UnaryInst(size_t id_, UnOpType op_ = UnOpType::NoneUnOp,
-                       std::shared_ptr<Inst> input = nullptr)
+                       Inst* input = nullptr)
         : FixedInputsInst(id_, InstType::Unary), op(op_)
     {
         inputs[0] = input;
@@ -386,7 +386,7 @@ class CallInst final : public Inst
     explicit CallInst(size_t id_) : Inst(id_, InstType::Call)
     {}
 
-    explicit CallInst(std::initializer_list<std::shared_ptr<Inst>> args_) : Inst(0, InstType::Call)
+    explicit CallInst(std::initializer_list<Inst*> args_) : Inst(0, InstType::Call)
     {
         args.insert(args.end(), args_.begin(), args_.end());
     }
@@ -395,28 +395,28 @@ class CallInst final : public Inst
 
     ~CallInst() = default;
 
-    std::vector<std::shared_ptr<Inst>> &getArgs()
+    std::vector<Inst*> &getArgs()
     {
         return args;
     }
 
-    void setArg(std::shared_ptr<Inst> arg, int num)
+    void setArg(Inst* arg, int num)
     {
         assert(num < args.size());
         args[num] = arg;
     }
 
-    void insertArg(std::shared_ptr<Inst> arg)
+    void insertArg(Inst* arg)
     {
         args.push_back(arg);
     }
 
-    void replaceArg(std::shared_ptr<Inst> old_arg, std::shared_ptr<Inst> new_arg)
+    void replaceArg(Inst* old_arg, Inst* new_arg)
     {
         std::replace(args.begin(), args.end(), old_arg, new_arg);
     }
 
-    void replaceArg(size_t num, std::shared_ptr<Inst> new_arg)
+    void replaceArg(size_t num, Inst* new_arg)
     {
         args[num] = new_arg;
     }
@@ -424,14 +424,14 @@ class CallInst final : public Inst
     void dump(std::ostream &out = std::cout) const override;
 
   private:
-    std::shared_ptr<Graph> func;
-    std::vector<std::shared_ptr<Inst>> args;
+    Graph* func;
+    std::vector<Inst*> args;
 };
 
 class CastInst final : public FixedInputsInst<1>
 {
   public:
-    explicit CastInst(size_t id_, std::shared_ptr<Inst> input = nullptr,
+    explicit CastInst(size_t id_, Inst* input = nullptr,
                       DataType to_ = DataType::NoType)
         : FixedInputsInst(id_, InstType::Cast), to(to_)
     {
@@ -474,7 +474,7 @@ class CastInst final : public FixedInputsInst<1>
 class MovInst final : public FixedInputsInst<1>
 {
   public:
-    explicit MovInst(size_t id_, size_t reg = 0, std::shared_ptr<Inst> input = nullptr)
+    explicit MovInst(size_t id_, size_t reg = 0, Inst* input = nullptr)
         : FixedInputsInst(id_, InstType::Mov), reg_num(reg)
     {
         inputs[0] = input;
@@ -512,7 +512,7 @@ class MovInst final : public FixedInputsInst<1>
 class PhiInst : public Inst
 {
   public:
-    using phi_pair_t = std::pair<std::shared_ptr<Inst>, BasicBlock *>;
+    using phi_pair_t = std::pair<Inst*, BasicBlock *>;
 
     explicit PhiInst(size_t id_) : Inst(id_, InstType::Phi)
     {}
@@ -530,7 +530,7 @@ class PhiInst : public Inst
         return inputs;
     }
 
-    void addInput(std::shared_ptr<Inst> inst, BasicBlock *bb)
+    void addInput(Inst* inst, BasicBlock *bb)
     {
         inputs.push_back(std::make_pair(inst, bb));
     }
@@ -546,7 +546,7 @@ class PhiInst : public Inst
         inputs[num].second = new_bb;
     }
 
-    void replaceArg(size_t num, std::shared_ptr<Inst> new_arg)
+    void replaceArg(size_t num, Inst* new_arg)
     {
         assert(num < inputs.size() && "too big input number");
         inputs[num].first = new_arg;

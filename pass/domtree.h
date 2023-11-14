@@ -8,7 +8,7 @@ namespace compiler
 class DomTree final : public Analysis
 {
   public:
-    DomTree(Graph *g) : Analysis(g)
+    explicit DomTree(Graph *g) : Analysis(g)
     {}
     ~DomTree() override = default;
 
@@ -17,6 +17,12 @@ class DomTree final : public Analysis
     std::string getAnalysisName() const noexcept override
     {
         return "DomTree";
+    }
+
+    void invalidateAnalysis() noexcept override
+    {
+        for (auto* bb : bbs)
+        	bb->getDominators().clear();
     }
 
   private:

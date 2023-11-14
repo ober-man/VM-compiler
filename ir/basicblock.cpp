@@ -25,6 +25,21 @@ void BasicBlock::replacePred(size_t num, BasicBlock *bb)
     preds[num] = bb;
 }
 
+void BasicBlock::setMarker(marker_t marker)
+{
+    markers->setMarker(marker);
+}
+
+void BasicBlock::resetMarker(marker_t marker)
+{
+    markers->resetMarker(marker);
+}
+
+bool BasicBlock::isMarked(marker_t marker)
+{
+    return markers->isMarked(marker);
+}
+
 void BasicBlock::dump(std::ostream &out) const
 {
     out << "BB " << name << "[" << id << "/" << graph->size() << "]" << std::endl;
@@ -37,9 +52,9 @@ void BasicBlock::dump(std::ostream &out) const
         inst->dump(out);
 
     out << "succs : ";
-    if (true_succ)
+    if (true_succ != nullptr)
         out << "true bb" << true_succ->getId();
-    if (false_succ)
+    if (false_succ != nullptr)
         out << ", false bb" << false_succ->getId();
     out << "\n"
         << "\n";

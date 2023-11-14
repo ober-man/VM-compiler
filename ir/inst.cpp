@@ -5,10 +5,10 @@
 namespace compiler
 {
 
-template <class T, class... Args>
-std::shared_ptr<Inst> createInst(Args &&... args)
+template <typename T, typename... Args>
+Inst* createInst(Args &&... args)
 {
-    return std::make_shared<T>(std::forward<Args>(args)...);
+    return T{std::forward<Args>(args)...};
 }
 
 void JumpInst::dump(std::ostream &out) const

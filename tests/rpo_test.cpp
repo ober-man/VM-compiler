@@ -33,11 +33,11 @@ TEST(RPO_TEST, TEST1)
     graph->insertBBAfter(bb2, bb4, false);
     graph->insertBBAfter(bb4, bb5);
     bb5->addSucc(bb2);
-    //graph->dump();
+    // graph->dump();
 
     graph->runPassRpo();
 
-    auto& bbs = graph->getRpoBBs();
+    auto &bbs = graph->getRpoBBs();
 
     ASSERT_EQ(bbs.size(), 5);
     ASSERT_EQ(bbs[0]->getId(), 1);
@@ -79,11 +79,11 @@ TEST(RPO_TEST, TEST2)
     graph->insertBBAfter(bb4, bb6, true);
     graph->addEdge(bb4, bb5);
     graph->addEdge(bb6, bb2);
-    //graph->dump();
+    // graph->dump();
 
     graph->runPassRpo();
 
-    auto& bbs = graph->getRpoBBs();
+    auto &bbs = graph->getRpoBBs();
 
     ASSERT_EQ(bbs.size(), 6);
     ASSERT_EQ(bbs[0]->getId(), 1);
@@ -141,7 +141,7 @@ TEST(RPO_TEST, TEST3)
 
     graph->runPassRpo();
 
-    auto& bbs = graph->getRpoBBs();
+    auto &bbs = graph->getRpoBBs();
 
     ASSERT_EQ(bbs.size(), 8);
     ASSERT_EQ(bbs[0]->getId(), 1);
@@ -188,11 +188,11 @@ TEST(RPO_TEST, TEST4)
     graph->insertBBAfter(bb6, bb7, false);
     graph->addEdge(bb5, bb4);
     graph->addEdge(bb7, bb4);
-    //graph->dump();
+    // graph->dump();
 
     graph->runPassRpo();
 
-    auto& bbs = graph->getRpoBBs();
+    auto &bbs = graph->getRpoBBs();
 
     ASSERT_EQ(bbs.size(), 7);
     ASSERT_EQ(bbs[0]->getId(), 1);
@@ -214,7 +214,7 @@ TEST(RPO_TEST, TEST4)
  *          |        v     v
  *          |    /->[3]<--[11]
  *          |    |   |
- *          |    |   v 
+ *          |    |   v
  *          |    \--[4]
  *          |        |
  *          |        v
@@ -260,11 +260,11 @@ TEST(RPO_TEST, TEST5)
     graph->addEdge(bb6, bb5);
     graph->addEdge(bb8, bb2);
     graph->addEdge(bb11, bb3);
-    //graph->dump();
+    // graph->dump();
 
     graph->runPassRpo();
 
-    auto& bbs = graph->getRpoBBs();
+    auto &bbs = graph->getRpoBBs();
 
     ASSERT_EQ(bbs.size(), 11);
     ASSERT_EQ(bbs[0]->getId(), 1);
@@ -332,7 +332,7 @@ TEST(RPO_TEST, TEST6)
 
     graph->runPassRpo();
 
-    auto& bbs = graph->getRpoBBs();
+    auto &bbs = graph->getRpoBBs();
 
     ASSERT_EQ(bbs.size(), 9);
     ASSERT_EQ(bbs[0]->getId(), 1);

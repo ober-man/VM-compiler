@@ -98,7 +98,7 @@ TEST(IR_TEST, FACT)
     auto *v8 = new BinaryInst{8, BinOpType::Cmp, v7, v6};
     auto *v9 = new JumpInst{9, JumpOpType::Ja, bb5};
 
-    bb3->pushBackInst(v7);
+    bb3->pushBackPhiInst(v7);
     bb3->pushBackInst(v8);
     bb3->pushBackInst(v9);
 
@@ -107,12 +107,12 @@ TEST(IR_TEST, FACT)
         ASSERT_EQ(v8->getId(), 8);
         ASSERT_EQ(v9->getId(), 9);
 
-        ASSERT_EQ(v7->getNext()->getId(), 8);
+        ASSERT_EQ(v7->getNext(), nullptr);
         ASSERT_EQ(v8->getNext()->getId(), 9);
         ASSERT_EQ(v9->getNext(), nullptr);
 
         ASSERT_EQ(v7->getPrev(), nullptr);
-        ASSERT_EQ(v8->getPrev()->getId(), 7);
+        ASSERT_EQ(v8->getPrev(), nullptr);
         ASSERT_EQ(v9->getPrev()->getId(), 8);
 
         ASSERT_EQ(v9->getBB()->getId(), 3);
@@ -131,8 +131,8 @@ TEST(IR_TEST, FACT)
     v10->addInput(std::make_pair(v12, bb4));
     v11->addInput(std::make_pair(v13, bb4));
 
-    bb4->pushBackInst(v10);
-    bb4->pushBackInst(v11);
+    bb4->pushBackPhiInst(v10);
+    bb4->pushBackPhiInst(v11);
     bb4->pushBackInst(v12);
     bb4->pushBackInst(v13);
     bb4->pushBackInst(v14);
@@ -145,14 +145,14 @@ TEST(IR_TEST, FACT)
         ASSERT_EQ(v14->getId(), 14);
 
         ASSERT_EQ(v10->getNext()->getId(), 11);
-        ASSERT_EQ(v11->getNext()->getId(), 12);
+        ASSERT_EQ(v11->getNext(), nullptr);
         ASSERT_EQ(v12->getNext()->getId(), 13);
         ASSERT_EQ(v13->getNext()->getId(), 14);
         ASSERT_EQ(v14->getNext(), nullptr);
 
         ASSERT_EQ(v10->getPrev(), nullptr);
         ASSERT_EQ(v11->getPrev()->getId(), 10);
-        ASSERT_EQ(v12->getPrev()->getId(), 11);
+        ASSERT_EQ(v12->getPrev(), nullptr);
         ASSERT_EQ(v13->getPrev()->getId(), 12);
         ASSERT_EQ(v14->getPrev()->getId(), 13);
 
@@ -165,18 +165,18 @@ TEST(IR_TEST, FACT)
     v15->addInput(std::make_pair(v12, bb4));
     auto *v16 = new UnaryInst{16, UnOpType::Return, v15};
 
-    bb5->pushBackInst(v15);
+    bb5->pushBackPhiInst(v15);
     bb5->pushBackInst(v16);
 
     {
         ASSERT_EQ(v15->getId(), 15);
         ASSERT_EQ(v16->getId(), 16);
 
-        ASSERT_EQ(v15->getNext()->getId(), 16);
+        ASSERT_EQ(v15->getNext(), nullptr);
         ASSERT_EQ(v16->getNext(), nullptr);
 
         ASSERT_EQ(v15->getPrev(), nullptr);
-        ASSERT_EQ(v16->getPrev()->getId(), 15);
+        ASSERT_EQ(v16->getPrev(), nullptr);
 
         ASSERT_EQ(v16->getBB()->getId(), 5);
     }

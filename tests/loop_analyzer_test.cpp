@@ -1,5 +1,5 @@
 #include "ir/graph.h"
-#include "pass/loop_analyzer.h"
+#include "pass/loop_analysis.h"
 #include "gtest/gtest.h"
 
 using namespace compiler;
@@ -9,14 +9,7 @@ void checkLoopBlocks(Loop *loop, std::vector<int> expected)
     auto &bbs = loop->getBody();
     size_t size = bbs.size();
     ASSERT_EQ(size, expected.size());
-/*
-    auto compare = [](BasicBlock* bb1, BasicBlock* bb2)
-                   {
-                       return bb1->getId() < bb2.getId();
-                   };
-    std::sort(bbs.begin(), bbs.end(), compare);
-    std::sort(expected.begin(), expected.end());
-*/
+
     for (size_t i = 0; i < size; ++i)
         ASSERT_EQ(bbs[i]->getId(), expected[i]);
 }
@@ -50,21 +43,21 @@ TEST(LOOP_TEST, TEST1)
     graph->insertBBAfter(bb2, bb4, false);
     graph->insertBBAfter(bb4, bb5);
     bb5->addSucc(bb2);
-    //graph->dump();
+    // graph->dump();
 
-    graph->runPassLoopAnalyzer();
+    graph->runPassLoopAnalysis();
 
-    auto* root = graph->getRootLoop();
+    auto *root = graph->getRootLoop();
     ASSERT_EQ(root->getOuterLoop(), nullptr);
     checkLoopBlocks(root, {1, 3});
 
-    auto& inner = root->getInnerLoops();
+    auto &inner = root->getInnerLoops();
     ASSERT_EQ(inner.size(), 1);
 
     auto loop_5_2 = inner[0];
     ASSERT_EQ(loop_5_2->getOuterLoop(), root);
     ASSERT_EQ(loop_5_2->getInnerLoops().size(), 0);
-    checkLoopBlocks(loop_5_2, {2, 5, 4});
+    checkLoopBlocks(loop_5_2, {2, 4, 5});
 }
 
 /**
@@ -99,21 +92,21 @@ TEST(LOOP_TEST, TEST2)
     graph->insertBBAfter(bb4, bb6, true);
     graph->addEdge(bb4, bb5);
     graph->addEdge(bb6, bb2);
-    //graph->dump();
+    // graph->dump();
 
-    graph->runPassLoopAnalyzer();
+    graph->runPassLoopAnalysis();
 
-    auto* root = graph->getRootLoop();
+    auto *root = graph->getRootLoop();
     ASSERT_EQ(root->getOuterLoop(), nullptr);
     checkLoopBlocks(root, {1, 5});
 
-    auto& inner = root->getInnerLoops();
+    auto &inner = root->getInnerLoops();
     ASSERT_EQ(inner.size(), 1);
 
     auto loop_6_2 = inner[0];
     ASSERT_EQ(loop_6_2->getOuterLoop(), root);
     ASSERT_EQ(loop_6_2->getInnerLoops().size(), 0);
-    checkLoopBlocks(loop_6_2, {2, 6, 4, 3});
+    checkLoopBlocks(loop_6_2, {2, 3, 4, 6});
 }
 
 /**
@@ -161,24 +154,24 @@ TEST(LOOP_TEST, TEST3)
     graph->addEdge(bb8, bb1);
     // graph->dump();
 
-    graph->runPassLoopAnalyzer();
+    graph->runPassLoopAnalysis();
 
-    auto* root = graph->getRootLoop();
+    auto *root = graph->getRootLoop();
     ASSERT_EQ(root->getOuterLoop(), nullptr);
     checkLoopBlocks(root, {6});
 
-    auto& inner = root->getInnerLoops();
+    auto &inner = root->getInnerLoops();
     ASSERT_EQ(inner.size(), 1);
-    
+
     auto loop_8_1 = inner[0];
     ASSERT_EQ(loop_8_1->getOuterLoop(), root);
     ASSERT_EQ(loop_8_1->getInnerLoops().size(), 1);
-    checkLoopBlocks(loop_8_1, {1, 8, 7, 5, 3, 2, 4});
+    checkLoopBlocks(loop_8_1, {1, 2, 3, 4, 5, 7, 8});
 
     auto loop_7_2 = loop_8_1->getInnerLoops()[0];
     ASSERT_EQ(loop_7_2->getOuterLoop(), loop_8_1);
     ASSERT_EQ(loop_7_2->getInnerLoops().size(), 0);
-    checkLoopBlocks(loop_7_2, {2, 7, 5, 3, 4});
+    checkLoopBlocks(loop_7_2, {2, 3, 4, 5, 7});
 }
 
 /**
@@ -215,20 +208,16 @@ TEST(LOOP_TEST, TEST4)
     graph->insertBBAfter(bb6, bb7, false);
     graph->addEdge(bb5, bb4);
     graph->addEdge(bb7, bb4);
-    //graph->dump();
+    // graph->dump();
 
-    graph->runPassRpo();
+    graph->runPassLoopAnalysis();
 
-    auto& bbs = graph->getRpoBBs();
+    auto *root = graph->getRootLoop();
+    ASSERT_EQ(root->getOuterLoop(), nullptr);
+    checkLoopBlocks(root, {1, 2, 3, 4, 5, 6, 7});
 
-    ASSERT_EQ(bbs.size(), 7);
-    ASSERT_EQ(bbs[0]->getId(), 1);
-    ASSERT_EQ(bbs[1]->getId(), 2);
-    ASSERT_EQ(bbs[2]->getId(), 6);
-    ASSERT_EQ(bbs[3]->getId(), 7);
-    ASSERT_EQ(bbs[4]->getId(), 5);
-    ASSERT_EQ(bbs[5]->getId(), 3);
-    ASSERT_EQ(bbs[6]->getId(), 4);
+    auto &inner = root->getInnerLoops();
+    ASSERT_EQ(inner.size(), 0);
 }
 
 /**
@@ -241,7 +230,7 @@ TEST(LOOP_TEST, TEST4)
  *          |        v     v
  *          |    /->[3]<--[11]
  *          |    |   |
- *          |    |   v 
+ *          |    |   v
  *          |    \--[4]
  *          |        |
  *          |        v
@@ -287,24 +276,31 @@ TEST(LOOP_TEST, TEST5)
     graph->addEdge(bb6, bb5);
     graph->addEdge(bb8, bb2);
     graph->addEdge(bb11, bb3);
-    //graph->dump();
+    // graph->dump();
 
-    graph->runPassRpo();
+    graph->runPassLoopAnalysis();
 
-    auto& bbs = graph->getRpoBBs();
+    auto *root = graph->getRootLoop();
+    ASSERT_EQ(root->getOuterLoop(), nullptr);
+    checkLoopBlocks(root, {1, 9, 10});
 
-    ASSERT_EQ(bbs.size(), 11);
-    ASSERT_EQ(bbs[0]->getId(), 1);
-    ASSERT_EQ(bbs[1]->getId(), 2);
-    ASSERT_EQ(bbs[2]->getId(), 11);
-    ASSERT_EQ(bbs[3]->getId(), 3);
-    ASSERT_EQ(bbs[4]->getId(), 4);
-    ASSERT_EQ(bbs[5]->getId(), 5);
-    ASSERT_EQ(bbs[6]->getId(), 6);
-    ASSERT_EQ(bbs[7]->getId(), 7);
-    ASSERT_EQ(bbs[8]->getId(), 9);
-    ASSERT_EQ(bbs[9]->getId(), 10);
-    ASSERT_EQ(bbs[10]->getId(), 8);
+    auto &inner = root->getInnerLoops();
+    ASSERT_EQ(inner.size(), 1);
+
+    auto loop_8_2 = inner[0];
+    ASSERT_EQ(loop_8_2->getOuterLoop(), root);
+    ASSERT_EQ(loop_8_2->getInnerLoops().size(), 2);
+    checkLoopBlocks(loop_8_2, {2, 3, 4, 5, 6, 7, 8, 11});
+
+    auto loop_6_5 = loop_8_2->getInnerLoops()[0];
+    ASSERT_EQ(loop_6_5->getOuterLoop(), loop_8_2);
+    ASSERT_EQ(loop_6_5->getInnerLoops().size(), 0);
+    checkLoopBlocks(loop_6_5, {5, 6});
+
+    auto loop_4_3 = loop_8_2->getInnerLoops()[1];
+    ASSERT_EQ(loop_4_3->getOuterLoop(), loop_8_2);
+    ASSERT_EQ(loop_4_3->getInnerLoops().size(), 0);
+    checkLoopBlocks(loop_4_3, {3, 4});
 }
 
 /**
@@ -315,15 +311,15 @@ TEST(LOOP_TEST, TEST5)
  *          /------>[2]----\
  *          |        |     |
  *          |        v     v
- *          |    /--[5]   [3]<--\
- *          |    |   |     |    |
- *          |    |   |     v    |
- *          |    |   \--->[4]   |
- *          |    v         |    |
- *          \---[6]        |    |
- *               |         |    |
- *               v         v    |
- *              [8]------>[7]---/
+ *          |    /--[5]   [3]<---\
+ *          |    |   |     |     |
+ *          |    |   |     v     |
+ *          |    |   \--->[4]    |
+ *          |    v         |     |
+ *          \---[6]        |     |
+ *               |         |     |
+ *               v         v     |
+ *              [8]------>[7]----/
  *               |         |
  *               |         v
  *               \------->[9]
@@ -357,18 +353,23 @@ TEST(LOOP_TEST, TEST6)
     graph->addEdge(bb7, bb3);
     // graph->dump();
 
-    graph->runPassRpo();
+    graph->runPassLoopAnalysis();
 
-    auto& bbs = graph->getRpoBBs();
+    auto *root = graph->getRootLoop();
+    ASSERT_EQ(root->getOuterLoop(), nullptr);
+    checkLoopBlocks(root, {1, 4, 8, 9});
 
-    ASSERT_EQ(bbs.size(), 9);
-    ASSERT_EQ(bbs[0]->getId(), 1);
-    ASSERT_EQ(bbs[1]->getId(), 2);
-    ASSERT_EQ(bbs[2]->getId(), 5);
-    ASSERT_EQ(bbs[3]->getId(), 6);
-    ASSERT_EQ(bbs[4]->getId(), 8);
-    ASSERT_EQ(bbs[5]->getId(), 3);
-    ASSERT_EQ(bbs[6]->getId(), 4);
-    ASSERT_EQ(bbs[7]->getId(), 7);
-    ASSERT_EQ(bbs[8]->getId(), 9);
+    auto &inner = root->getInnerLoops();
+    ASSERT_EQ(inner.size(), 2);
+
+    auto loop_6_2 = inner[0];
+    ASSERT_EQ(loop_6_2->getOuterLoop(), root);
+    ASSERT_EQ(loop_6_2->getInnerLoops().size(), 0);
+    checkLoopBlocks(loop_6_2, {2, 5, 6});
+
+    auto loop_7_3 = inner[1];
+    ASSERT_EQ(loop_7_3->getOuterLoop(), root);
+    ASSERT_EQ(loop_7_3->getInnerLoops().size(), 0);
+    ASSERT_TRUE(loop_7_3->isIrreducible());
+    checkLoopBlocks(loop_7_3, {3, 7});
 }

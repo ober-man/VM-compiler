@@ -1,7 +1,7 @@
 #pragma once
 
-#include "inst.h"
 #include "graph.h"
+#include "inst.h"
 #include "marker.h"
 
 namespace compiler
@@ -12,6 +12,7 @@ namespace compiler
 
 class Graph;
 class Loop;
+class LiveInterval;
 
 class BasicBlock
 {
@@ -25,16 +26,7 @@ class BasicBlock
         markers = std::make_unique<MarkerSet>();
     }
 
-    ~BasicBlock()
-    {
-        Inst* inst = first_inst;
-        while (inst != nullptr)
-        {
-            first_inst = inst->getNext();
-            delete inst;
-            inst = first_inst;
-        }
-    }
+    ~BasicBlock();
 
     size_t getId() const noexcept
     {
@@ -103,17 +95,27 @@ class BasicBlock
         false_succ = bb;
     }
 
-    Inst* getFirstInst() const noexcept
+    Inst *getFirstInst() const noexcept
     {
         return first_inst;
     }
 
-    Inst* getLastInst() const noexcept
+    Inst *getLastInst() const noexcept
     {
         return last_inst;
     }
 
-    Inst* getInst(size_t id)
+    Inst *getFirstPhi() const noexcept
+    {
+        return static_cast<Inst *>(first_phi);
+    }
+
+    Inst *getLastPhi() const noexcept
+    {
+        return static_cast<Inst *>(last_inst);
+    }
+
+    Inst *getInst(size_t id)
     {
         for (auto inst = first_inst; inst != nullptr; inst = inst->getNext())
             if (inst->getId() == id)
@@ -126,23 +128,36 @@ class BasicBlock
         return dominators;
     }
 
-    BasicBlock* getIdom() const noexcept
+    BasicBlock *getIdom() const noexcept
     {
         return idom;
     }
 
-    Loop* getLoop() const noexcept
+    Loop *getLoop() const noexcept
     {
         return loop;
     }
 
-    void setLoop(Loop* loop_) noexcept
+    void setLoop(Loop *loop_) noexcept
     {
         loop = loop_;
     }
 
-    void pushBackInst(Inst* inst)
+    bool isHeader() const noexcept;
+
+    LiveInterval *getLiveInterval() const noexcept
     {
+        return live_int;
+    }
+
+    void setLiveInterval(LiveInterval *live) noexcept
+    {
+        live_int = live;
+    }
+
+    void pushBackInst(Inst *inst)
+    {
+        assert(inst->getInstType() != InstType::Phi);
         assert(!inst->getPrev() && "inserted inst has predecessor");
 
         if (first_inst == nullptr)
@@ -158,8 +173,27 @@ class BasicBlock
         ++bb_size;
     }
 
-    void pushFrontInst(Inst* inst)
+    void pushBackPhiInst(PhiInst *inst)
     {
+        assert(inst->getInstType() == InstType::Phi);
+        assert(!inst->getPrev() && "inserted inst has predecessor");
+
+        if (first_phi == nullptr)
+            first_phi = inst;
+
+        inst->setPrev(last_phi);
+        inst->setNext(nullptr);
+        inst->setBB(this);
+
+        if (last_phi != nullptr)
+            last_phi->setNext(inst);
+        last_phi = inst;
+        ++bb_size;
+    }
+
+    void pushFrontInst(Inst *inst)
+    {
+        assert(inst->getInstType() != InstType::Phi);
         assert(!inst->getNext() && "inserted inst has successor");
 
         if (!last_inst)
@@ -175,10 +209,28 @@ class BasicBlock
         ++bb_size;
     }
 
+    void pushFrontPhiInst(PhiInst *inst)
+    {
+        assert(inst->getInstType() == InstType::Phi);
+        assert(!inst->getNext() && "inserted inst has successor");
+
+        if (!last_phi)
+            last_phi = inst;
+
+        inst->setPrev(nullptr);
+        inst->setNext(first_phi);
+        inst->setBB(this);
+
+        if (first_phi)
+            first_phi->setPrev(inst);
+        first_phi = inst;
+        ++bb_size;
+    }
+
     /**
      * Insert inst after prev_inst
      */
-    void insertAfter(Inst* prev_inst, Inst* inst)
+    void insertAfter(Inst *prev_inst, Inst *inst)
     {
         assert(!inst->getPrev() && "inserted inst has predecessor");
         assert(!inst->getNext() && "inserted inst has successor");
@@ -219,7 +271,7 @@ class BasicBlock
         --bb_size;
     }
 
-    void removeInst(Inst* inst)
+    void removeInst(Inst *inst)
     {
         auto next_inst = inst->getNext();
         auto prev_inst = inst->getPrev();
@@ -311,7 +363,7 @@ class BasicBlock
 
     void setMarker(marker_t marker);
     void resetMarker(marker_t marker);
-    bool isMarked(marker_t marker);
+    bool isMarked(marker_t marker) const;
 
     void addDominator(BasicBlock *dom)
     {
@@ -319,10 +371,10 @@ class BasicBlock
     }
 
     // return true, if *this is a dominator of bb
-    bool isDominator(BasicBlock* bb)
+    bool isDominator(BasicBlock *bb)
     {
-    	auto& doms = bb->getDominators();
-    	return std::find(doms.begin(), doms.end(), this) != doms.end();
+        auto &doms = bb->getDominators();
+        return std::find(doms.begin(), doms.end(), this) != doms.end();
     }
 
     void countIdom()
@@ -335,7 +387,6 @@ class BasicBlock
     }
 
     void dump(std::ostream &out = std::cout) const;
-    void dumpDomTree(std::ostream &out = std::cout) const;
 
   private:
     size_t id = 0;
@@ -347,14 +398,18 @@ class BasicBlock
     BasicBlock *true_succ;
     BasicBlock *false_succ;
 
-    Inst* first_inst = nullptr;
-    Inst* last_inst = nullptr;
+    Inst *first_inst = nullptr;
+    Inst *last_inst = nullptr;
+    PhiInst *first_phi = nullptr;
+    PhiInst *last_phi = nullptr;
 
     std::vector<BasicBlock *> dominators;
-    BasicBlock* idom = nullptr;
+    BasicBlock *idom = nullptr;
 
     std::unique_ptr<MarkerSet> markers;
     Loop *loop = nullptr;
+
+    LiveInterval *live_int = nullptr;
 };
 
 } // namespace compiler

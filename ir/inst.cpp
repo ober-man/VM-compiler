@@ -6,7 +6,7 @@ namespace compiler
 {
 
 template <typename T, typename... Args>
-Inst* createInst(Args &&... args)
+Inst *createInst(Args &&... args)
 {
     return T{std::forward<Args>(args)...};
 }

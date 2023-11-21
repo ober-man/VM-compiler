@@ -10,9 +10,3 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_subdirectory(ir)
 add_subdirectory(pass)
 add_subdirectory(tests)
-
-#add_executable(compiler compiler.cpp)
-
-#target_include_directories(compiler PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-#target_link_libraries(compiler ir)
-#target_link_libraries(compiler pass)

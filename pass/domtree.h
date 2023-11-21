@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pass.h"
+#include "pass/pass.h"
 
 namespace compiler
 {
@@ -21,8 +21,8 @@ class DomTree final : public Analysis
 
     void invalidateAnalysis() noexcept override
     {
-        for (auto* bb : bbs)
-        	bb->getDominators().clear();
+        for (auto *bb : bbs)
+            bb->getDominators().clear();
     }
 
   private:

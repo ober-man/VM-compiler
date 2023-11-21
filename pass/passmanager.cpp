@@ -1,7 +1,9 @@
 #include "passmanager.h"
 #include "domtree.h"
+#include "linear_order.h"
+#include "liveness.h"
+#include "loop_analysis.h"
 #include "pass.h"
-#include "loop_analyzer.h"
 #include "rpo.h"
 
 namespace compiler
@@ -29,7 +31,7 @@ bool PassManager::runPassRpo(marker_t marker)
 
     if (!pass->runPassImpl())
     {
-        std::cerr << "Pass rpo failed" << std::endl;
+        std::cerr << "Pass RPO failed" << std::endl;
         return false;
     }
     return true;
@@ -41,19 +43,43 @@ bool PassManager::runPassDomTree()
 
     if (!pass->runPassImpl())
     {
-        std::cerr << "Pass domtree failed" << std::endl;
+        std::cerr << "Pass DomTree failed" << std::endl;
         return false;
     }
     return true;
 }
 
-bool PassManager::runPassLoopAnalyzer()
+bool PassManager::runPassLoopAnalysis()
 {
-    auto *pass = new LoopAnalyzer{graph};
+    auto *pass = new LoopAnalysis{graph};
 
     if (!pass->runPassImpl())
     {
-        std::cerr << "Pass LoopAnalyzer failed" << std::endl;
+        std::cerr << "Pass LoopAnalysis failed" << std::endl;
+        return false;
+    }
+    return true;
+}
+
+bool PassManager::runPassLinearOrder()
+{
+    auto *pass = new LinearOrder{graph};
+
+    if (!pass->runPassImpl())
+    {
+        std::cerr << "Pass LinearOrder failed" << std::endl;
+        return false;
+    }
+    return true;
+}
+
+bool PassManager::runPassLivenessAnalysis()
+{
+    auto *pass = new LivenessAnalysis{graph};
+
+    if (!pass->runPassImpl())
+    {
+        std::cerr << "Pass LivenessAnalysis failed" << std::endl;
         return false;
     }
     return true;

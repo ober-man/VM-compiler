@@ -15,56 +15,56 @@ using marker_t = uint32_t;
 
 class MarkerManager
 {
-public:
-	MarkerManager() = default;
-	~MarkerManager() = default;
+  public:
+    MarkerManager() = default;
+    ~MarkerManager() = default;
 
-	marker_t getNewMarker()
-	{
-		for (uint32_t i = 0; i < MARKERS_NUM; ++i)
-			if (!available_mrks[i])
-			{
-				available_mrks[i] = true;
-				return i;
-			}
-		UNREACHABLE();
-	}
+    marker_t getNewMarker()
+    {
+        for (uint32_t i = 0; i < MARKERS_NUM; ++i)
+            if (!available_mrks[i])
+            {
+                available_mrks[i] = true;
+                return i;
+            }
+        UNREACHABLE();
+    }
 
-	void deleteMarker(marker_t marker)
-	{
-		uint32_t pos = marker & POS_MASK;
-		available_mrks[pos] = false;
-	}
+    void deleteMarker(marker_t marker)
+    {
+        uint32_t pos = marker & POS_MASK;
+        available_mrks[pos] = false;
+    }
 
-private:
-	std::bitset<MARKERS_NUM> available_mrks;
+  private:
+    std::bitset<MARKERS_NUM> available_mrks;
 };
 
 class MarkerSet
 {
-public:
-	MarkerSet() = default;
-	~MarkerSet() = default;
+  public:
+    MarkerSet() = default;
+    ~MarkerSet() = default;
 
-	void setMarker(marker_t marker)
-	{
-		uint32_t pos = marker & POS_MASK;
-		markers[pos] = true;
-	}
+    void setMarker(marker_t marker)
+    {
+        uint32_t pos = marker & POS_MASK;
+        markers[pos] = true;
+    }
 
-	void resetMarker(marker_t marker)
-	{
-		uint32_t pos = marker & POS_MASK;
-		markers[pos] = false;
-	}
+    void resetMarker(marker_t marker)
+    {
+        uint32_t pos = marker & POS_MASK;
+        markers[pos] = false;
+    }
 
-	bool isMarked(marker_t marker)
-	{
-		return markers[marker & POS_MASK];
-	}	
+    bool isMarked(marker_t marker) const
+    {
+        return markers[marker & POS_MASK];
+    }
 
-private:
-	std::bitset<MARKERS_NUM> markers;
+  private:
+    std::bitset<MARKERS_NUM> markers;
 };
 
 } // namespace compiler

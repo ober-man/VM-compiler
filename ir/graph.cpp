@@ -1,17 +1,21 @@
 #include "graph.h"
 #include "pass/domtree.h"
+#include "pass/linear_order.h"
+#include "pass/liveness.h"
+#include "pass/loop_analysis.h"
 #include "pass/rpo.h"
-#include "pass/loop_analyzer.h"
 
 namespace compiler
 {
 
 Graph::~Graph()
 {
-    for (auto* bb : BBs)
+    for (auto *bb : BBs)
         delete bb;
     if (root_loop != nullptr)
         delete root_loop;
+    for (auto [inst, live_int] : live_intervals)
+        delete live_int;
 }
 
 // template <typename PassName, typename... Args>
@@ -25,9 +29,19 @@ bool Graph::runPassDomTree()
     return pm->runPassDomTree();
 }
 
-bool Graph::runPassLoopAnalyzer()
+bool Graph::runPassLoopAnalysis()
 {
-    return pm->runPassLoopAnalyzer();
+    return pm->runPassLoopAnalysis();
+}
+
+bool Graph::runPassLinearOrder()
+{
+    return pm->runPassLinearOrder();
+}
+
+bool Graph::runPassLivenessAnalysis()
+{
+    return pm->runPassLivenessAnalysis();
 }
 
 marker_t Graph::getNewMarker()
@@ -38,6 +52,8 @@ marker_t Graph::getNewMarker()
 void Graph::deleteMarker(marker_t marker)
 {
     mm->deleteMarker(marker);
+    for (auto bb : BBs)
+        bb->resetMarker(marker);
 }
 
 void Graph::insertBB(BasicBlock *bb)

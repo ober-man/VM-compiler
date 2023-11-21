@@ -1,7 +1,9 @@
 #pragma once
 
-#include "pass.h"
 #include "ir/marker.h"
+#include "pass.h"
+#include <iostream>
+#include <vector>
 
 namespace compiler
 {
@@ -10,7 +12,9 @@ class Analysis;
 class Optimization;
 class Rpo;
 class DomTree;
-class LoopAnalyzer;
+class LoopAnalysis;
+class LinearOrder;
+class LivenessAnalysis;
 class Graph;
 
 #define NO_MARKER 1000
@@ -28,7 +32,9 @@ class PassManager final
     // [some template magic was broken and there is a crutch]
     bool runPassRpo(marker_t marker = NO_MARKER);
     bool runPassDomTree();
-    bool runPassLoopAnalyzer();
+    bool runPassLoopAnalysis();
+    bool runPassLinearOrder();
+    bool runPassLivenessAnalysis();
 
     Graph *getGraph() const noexcept
     {

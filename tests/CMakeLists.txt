@@ -5,6 +5,7 @@ set(TESTS_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/rpo_test.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/domtree_test.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/loop_analyzer_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/linear_test.cpp
 )
 
 add_executable(tests ${TESTS_SOURCES})

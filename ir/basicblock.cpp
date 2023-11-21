@@ -1,8 +1,23 @@
 #include "basicblock.h"
 #include "graph.h"
+#include "pass/liveness.h"
+#include "pass/loop_analysis.h"
 
 namespace compiler
 {
+
+BasicBlock::~BasicBlock()
+{
+    Inst *inst = first_inst;
+    while (inst != nullptr)
+    {
+        first_inst = inst->getNext();
+        delete inst;
+        inst = first_inst;
+    }
+    if (live_int != nullptr)
+        delete live_int;
+}
 
 void BasicBlock::setId(size_t id_) noexcept
 {
@@ -35,9 +50,14 @@ void BasicBlock::resetMarker(marker_t marker)
     markers->resetMarker(marker);
 }
 
-bool BasicBlock::isMarked(marker_t marker)
+bool BasicBlock::isMarked(marker_t marker) const
 {
     return markers->isMarked(marker);
+}
+
+bool BasicBlock::isHeader() const noexcept
+{
+    return loop->getHeader() == this;
 }
 
 void BasicBlock::dump(std::ostream &out) const
@@ -48,7 +68,10 @@ void BasicBlock::dump(std::ostream &out) const
                   [&out](auto pred) { out << "bb" << pred->getId() << " "; });
     out << "\n";
 
-    for (auto inst = first_inst; inst != nullptr; inst = inst->getNext())
+    for (auto *phi = getFirstPhi(); phi != nullptr; phi = phi->getNext())
+        phi->dump(out);
+
+    for (auto *inst = first_inst; inst != nullptr; inst = inst->getNext())
         inst->dump(out);
 
     out << "succs : ";
@@ -58,11 +81,6 @@ void BasicBlock::dump(std::ostream &out) const
         out << ", false bb" << false_succ->getId();
     out << "\n"
         << "\n";
-}
-
-void BasicBlock::dumpDomTree(std::ostream &out) const
-{
-    // TODO after implementing fast DomTree
 }
 
 } // namespace compiler

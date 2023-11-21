@@ -8,8 +8,8 @@ auto DomTree::getUnreachedBBs(std::vector<BasicBlock *> &reached)
 {
     std::vector<BasicBlock *> unreached;
     for (auto *bb : bbs)
-        if (std::find_if(reached.begin(), reached.end(), 
-                         [bb](auto *elem) { return bb == elem; }) == reached.end())
+        if (std::find_if(reached.begin(), reached.end(), [bb](auto *elem) { return bb == elem; }) ==
+            reached.end())
         {
             // if bb was not found in reached array -> it is unreached
             unreached.push_back(bb);

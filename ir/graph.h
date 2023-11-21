@@ -1,5 +1,12 @@
 #pragma once
 
+#include <iostream>
+#include <vector>
+#include <cassert>
+#include <memory>
+#include <algorithm>
+#include <unordered_map>
+#include "inst.h"
 #include "basicblock.h"
 #include "pass/passmanager.h"
 
@@ -8,20 +15,24 @@ namespace compiler
 
 #define GRAPH_BB_NUM 50
 
+class BasicBlock;
 class PassManager;
 class Rpo;
 class DomTree;
 class Loop;
-class LoopAnalyzer;
+class LoopAnalysis;
+class LinearOrder;
+class LivenessAnalysis;
+class LiveInterval;
 
 class Graph
 {
   public:
-    Graph(std::string name = "") : func_name(name)
+    Graph(std::string name = "") : func_name(name), graph_size(0)
     {
         BBs.reserve(GRAPH_BB_NUM);
         rpo_BBs.reserve(GRAPH_BB_NUM);
-        graph_size = 0;
+        linear_order_BBs.reserve(GRAPH_BB_NUM);
         pm = std::make_unique<PassManager>(this);
         mm = std::make_unique<MarkerManager>();
     }
@@ -57,19 +68,39 @@ class Graph
         return rpo_BBs;
     }
 
+    std::vector<BasicBlock *> &getLinearOrderBBs() noexcept
+    {
+        return linear_order_BBs;
+    }
+
+    std::unordered_map<Inst *, LiveInterval *> &getLiveIntervals() noexcept
+    {
+        return live_intervals;
+    }
+
     void setRPOBBs(std::vector<BasicBlock *> &rpo) noexcept
     {
         rpo_BBs = rpo;
     }
 
-    Loop* getRootLoop() const noexcept
+    void setLinearOrderBBs(std::vector<BasicBlock *> &linear) noexcept
     {
-    	return root_loop;
+        linear_order_BBs = linear;
     }
 
-    void setRootLoop(Loop* loop_) noexcept
+    void setLiveIntervals(std::unordered_map<Inst *, LiveInterval *> &live) noexcept
     {
-    	root_loop = loop_;
+        live_intervals = live;
+    }
+
+    Loop *getRootLoop() const noexcept
+    {
+        return root_loop;
+    }
+
+    void setRootLoop(Loop *loop_) noexcept
+    {
+        root_loop = loop_;
     }
 
     BasicBlock *getFirstBB() const noexcept
@@ -122,17 +153,14 @@ class Graph
         std::for_each(BBs.begin(), BBs.end(), [&out](auto bb) { bb->dump(out); });
     }
 
-    void dumpDomTree(std::ostream &out = std::cout) const
-    {
-        // TODO after implementing fast DomTree
-    }
-
     // template <typename PassName, typename... Args>
     // TODO: fix PassManager
     // [some template magic was broken and there is a crutch]
     bool runPassRpo(marker_t marker = 0);
     bool runPassDomTree();
-    bool runPassLoopAnalyzer();
+    bool runPassLoopAnalysis();
+    bool runPassLinearOrder();
+    bool runPassLivenessAnalysis();
 
   private:
     std::string func_name = "";
@@ -140,10 +168,13 @@ class Graph
 
     std::vector<BasicBlock *> BBs;
     std::vector<BasicBlock *> rpo_BBs;
+    std::vector<BasicBlock *> linear_order_BBs;
 
     std::unique_ptr<PassManager> pm = nullptr;
     std::unique_ptr<MarkerManager> mm = nullptr;
     Loop *root_loop = nullptr;
+
+    std::unordered_map<Inst *, LiveInterval *> live_intervals;
 };
 
 /*

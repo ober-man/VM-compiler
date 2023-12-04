@@ -3,7 +3,7 @@
 namespace compiler
 {
 
-Rpo::Rpo(Graph *g, marker_t marker) : Analysis(g), visited(marker)
+Rpo::Rpo(Graph* g, marker_t marker) : Analysis(g), visited(marker)
 {
     size_t size = g->size();
     rpo_bbs.reserve(size);
@@ -11,14 +11,14 @@ Rpo::Rpo(Graph *g, marker_t marker) : Analysis(g), visited(marker)
     // cur_num = size-1;
 }
 
-void Rpo::visitBasicBlock(BasicBlock *bb)
+void Rpo::visitBasicBlock(BasicBlock* bb)
 {
     assert(bb != nullptr && "nullptr bb in RPO pass");
     if (bb->isMarked(visited))
         return;
 
-    auto *true_succ = bb->getTrueSucc();
-    auto *false_succ = bb->getFalseSucc();
+    auto* true_succ = bb->getTrueSucc();
+    auto* false_succ = bb->getFalseSucc();
 
     bb->setMarker(visited);
 
@@ -47,7 +47,7 @@ bool Rpo::runPassImpl()
     std::reverse(rpo_bbs.begin(), rpo_bbs.end());
     graph->setRPOBBs(rpo_bbs);
 
-    for (auto *bb : rpo_bbs)
+    for (auto* bb : rpo_bbs)
         bb->resetMarker(visited);
 
     graph->deleteMarker(visited);

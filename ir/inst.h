@@ -16,7 +16,7 @@ class Graph;
 class Inst
 {
   public:
-    explicit Inst(size_t id_, InstType inst_type_ = InstType::NoneInst, BasicBlock *bb_ = nullptr)
+    explicit Inst(size_t id_, InstType inst_type_ = InstType::NoneInst, BasicBlock* bb_ = nullptr)
         : inst_type(inst_type_), id(id_), bb(bb_)
     {}
     virtual ~Inst() = default;
@@ -61,27 +61,27 @@ class Inst
         return bb;
     }
 
-    void setBB(BasicBlock *bb_) noexcept
+    void setBB(BasicBlock* bb_) noexcept
     {
         bb = bb_;
     }
 
-    Inst *getNext() const noexcept
+    Inst* getNext() const noexcept
     {
         return next;
     }
 
-    void setNext(Inst *next_) noexcept
+    void setNext(Inst* next_) noexcept
     {
         next = next_;
     }
 
-    Inst *getPrev() const noexcept
+    Inst* getPrev() const noexcept
     {
         return prev;
     }
 
-    void setPrev(Inst *prev_) noexcept
+    void setPrev(Inst* prev_) noexcept
     {
         prev = prev_;
     }
@@ -91,7 +91,7 @@ class Inst
         return DataType::NoType;
     }
 
-    virtual void dump(std::ostream &out = std::cout) const = 0;
+    virtual void dump(std::ostream& out = std::cout) const = 0;
 
   protected:
     InstType inst_type = InstType::NoneInst;
@@ -100,9 +100,9 @@ class Inst
     size_t linear_num = 0;
     size_t live_num = 0;
 
-    BasicBlock *bb = nullptr;
-    Inst *prev = nullptr;
-    Inst *next = nullptr;
+    BasicBlock* bb = nullptr;
+    Inst* prev = nullptr;
+    Inst* next = nullptr;
 };
 
 std::string getDataTypeString(DataType type);
@@ -114,38 +114,38 @@ class FixedInputsInst : public Inst
     using Inst::Inst;
     virtual ~FixedInputsInst() = default;
 
-    Inst *getInput(size_t num) const
+    Inst* getInput(size_t num) const
     {
         assert(num < N && "too big input number");
         return inputs[num];
     }
 
-    void setInput(Inst *input, size_t num)
+    void setInput(Inst* input, size_t num)
     {
         assert(num < N && "too big input number");
         inputs[num] = input;
     }
 
-    void replaceInput(Inst *old_input, Inst *new_input)
+    void replaceInput(Inst* old_input, Inst* new_input)
     {
         std::replace(inputs.begin(), inputs.end(), old_input, new_input);
     }
 
-    void replaceInput(size_t num, Inst *new_input)
+    void replaceInput(size_t num, Inst* new_input)
     {
         assert(num < N && "too big input number");
         inputs[num] = new_input;
     }
 
   protected:
-    std::array<Inst *, N> inputs;
+    std::array<Inst*, N> inputs;
 };
 
 class BinaryInst final : public FixedInputsInst<2>
 {
   public:
-    explicit BinaryInst(size_t id_, BinOpType op_ = BinOpType::NoneBinOp, Inst *left = nullptr,
-                        Inst *right = nullptr)
+    explicit BinaryInst(size_t id_, BinOpType op_ = BinOpType::NoneBinOp, Inst* left = nullptr,
+                        Inst* right = nullptr)
         : FixedInputsInst(id_, InstType::Binary), op(op_)
     {
         inputs[0] = left;
@@ -172,7 +172,7 @@ class BinaryInst final : public FixedInputsInst<2>
         return data_type;
     }
 
-    void dump(std::ostream &out = std::cout) const override
+    void dump(std::ostream& out = std::cout) const override
     {
         out << "\t"
             << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(op)] << " "
@@ -190,7 +190,7 @@ class BinaryInst final : public FixedInputsInst<2>
 class UnaryInst final : public FixedInputsInst<1>
 {
   public:
-    explicit UnaryInst(size_t id_, UnOpType op_ = UnOpType::NoneUnOp, Inst *input = nullptr)
+    explicit UnaryInst(size_t id_, UnOpType op_ = UnOpType::NoneUnOp, Inst* input = nullptr)
         : FixedInputsInst(id_, InstType::Unary), op(op_)
     {
         inputs[0] = input;
@@ -213,7 +213,7 @@ class UnaryInst final : public FixedInputsInst<1>
         return inputs[0]->getType();
     }
 
-    void dump(std::ostream &out = std::cout) const override
+    void dump(std::ostream& out = std::cout) const override
     {
         out << "\t"
             << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(op)] << " "
@@ -311,7 +311,7 @@ class ConstInst final : public Inst
         data_type = data_type_;
     }
 
-    void dump(std::ostream &out = std::cout) const override
+    void dump(std::ostream& out = std::cout) const override
     {
         out << "\t"
             << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " "
@@ -352,7 +352,7 @@ class ParamInst final : public Inst
         return data_type;
     }
 
-    void dump(std::ostream &out = std::cout) const override
+    void dump(std::ostream& out = std::cout) const override
     {
         out << "\t"
             << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " "
@@ -368,7 +368,7 @@ class JumpInst final : public Inst
 {
   public:
     explicit JumpInst(size_t id_, JumpOpType op_ = JumpOpType::NoneJumpOp,
-                      BasicBlock *target_ = nullptr)
+                      BasicBlock* target_ = nullptr)
         : Inst(id_, InstType::Jump), op(op_), target(target_)
     {}
 
@@ -384,21 +384,21 @@ class JumpInst final : public Inst
         op = op_;
     }
 
-    BasicBlock *getTargetBB() const noexcept
+    BasicBlock* getTargetBB() const noexcept
     {
         return target;
     }
 
-    void setTargetBB(BasicBlock *target_) noexcept
+    void setTargetBB(BasicBlock* target_) noexcept
     {
         target = target_;
     }
 
-    void dump(std::ostream &out = std::cout) const override;
+    void dump(std::ostream& out = std::cout) const override;
 
   private:
     JumpOpType op = JumpOpType::NoneJumpOp;
-    BasicBlock *target = nullptr;
+    BasicBlock* target = nullptr;
 };
 
 class CallInst final : public Inst
@@ -407,7 +407,7 @@ class CallInst final : public Inst
     explicit CallInst(size_t id_) : Inst(id_, InstType::Call)
     {}
 
-    explicit CallInst(std::initializer_list<Inst *> args_) : Inst(0, InstType::Call)
+    explicit CallInst(std::initializer_list<Inst*> args_) : Inst(0, InstType::Call)
     {
         args.insert(args.end(), args_.begin(), args_.end());
     }
@@ -416,43 +416,43 @@ class CallInst final : public Inst
 
     ~CallInst() = default;
 
-    std::vector<Inst *> &getArgs()
+    std::vector<Inst*>& getArgs()
     {
         return args;
     }
 
-    void setArg(Inst *arg, int num)
+    void setArg(Inst* arg, int num)
     {
         assert(num < args.size());
         args[num] = arg;
     }
 
-    void insertArg(Inst *arg)
+    void insertArg(Inst* arg)
     {
         args.push_back(arg);
     }
 
-    void replaceArg(Inst *old_arg, Inst *new_arg)
+    void replaceArg(Inst* old_arg, Inst* new_arg)
     {
         std::replace(args.begin(), args.end(), old_arg, new_arg);
     }
 
-    void replaceArg(size_t num, Inst *new_arg)
+    void replaceArg(size_t num, Inst* new_arg)
     {
         args[num] = new_arg;
     }
 
-    void dump(std::ostream &out = std::cout) const override;
+    void dump(std::ostream& out = std::cout) const override;
 
   private:
-    Graph *func;
-    std::vector<Inst *> args;
+    Graph* func;
+    std::vector<Inst*> args;
 };
 
 class CastInst final : public FixedInputsInst<1>
 {
   public:
-    explicit CastInst(size_t id_, Inst *input = nullptr, DataType to_ = DataType::NoType)
+    explicit CastInst(size_t id_, Inst* input = nullptr, DataType to_ = DataType::NoType)
         : FixedInputsInst(id_, InstType::Cast), to(to_)
     {
         inputs[0] = input;
@@ -480,7 +480,7 @@ class CastInst final : public FixedInputsInst<1>
         return to;
     }
 
-    void dump(std::ostream &out = std::cout) const override
+    void dump(std::ostream& out = std::cout) const override
     {
         out << "\t"
             << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " v"
@@ -494,7 +494,7 @@ class CastInst final : public FixedInputsInst<1>
 class MovInst final : public FixedInputsInst<1>
 {
   public:
-    explicit MovInst(size_t id_, size_t reg = 0, Inst *input = nullptr)
+    explicit MovInst(size_t id_, size_t reg = 0, Inst* input = nullptr)
         : FixedInputsInst(id_, InstType::Mov), reg_num(reg)
     {
         inputs[0] = input;
@@ -517,7 +517,7 @@ class MovInst final : public FixedInputsInst<1>
         return inputs[0]->getType();
     }
 
-    void dump(std::ostream &out = std::cout) const override
+    void dump(std::ostream& out = std::cout) const override
     {
         out << "\t"
             << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " "
@@ -532,7 +532,7 @@ class MovInst final : public FixedInputsInst<1>
 class PhiInst : public Inst
 {
   public:
-    using phi_pair_t = std::pair<Inst *, BasicBlock *>;
+    using phi_pair_t = std::pair<Inst*, BasicBlock*>;
 
     explicit PhiInst(size_t id_) : Inst(id_, InstType::Phi)
     {}
@@ -545,12 +545,12 @@ class PhiInst : public Inst
 
     ~PhiInst() = default;
 
-    auto &getInputs() const noexcept
+    auto& getInputs() const noexcept
     {
         return inputs;
     }
 
-    void addInput(Inst *inst, BasicBlock *bb)
+    void addInput(Inst* inst, BasicBlock* bb)
     {
         inputs.push_back(std::make_pair(inst, bb));
     }
@@ -560,13 +560,13 @@ class PhiInst : public Inst
         inputs.push_back(pair);
     }
 
-    void replaceBB(size_t num, BasicBlock *new_bb)
+    void replaceBB(size_t num, BasicBlock* new_bb)
     {
         assert(num < inputs.size() && "too big input number");
         inputs[num].second = new_bb;
     }
 
-    void replaceArg(size_t num, Inst *new_arg)
+    void replaceArg(size_t num, Inst* new_arg)
     {
         assert(num < inputs.size() && "too big input number");
         inputs[num].first = new_arg;
@@ -574,7 +574,7 @@ class PhiInst : public Inst
 
     DataType getType() const noexcept override
     {
-        for (auto &&input : inputs)
+        for (auto&& input : inputs)
         {
             DataType type = input.first->getType();
             if (type != DataType::NoType)
@@ -583,7 +583,7 @@ class PhiInst : public Inst
         return DataType::NoType;
     }
 
-    void dump(std::ostream &out = std::cout) const override;
+    void dump(std::ostream& out = std::cout) const override;
 
   private:
     std::vector<phi_pair_t> inputs;

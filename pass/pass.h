@@ -10,7 +10,7 @@ class Graph;
 class Pass
 {
   public:
-    explicit Pass(Graph *g) : graph(g)
+    explicit Pass(Graph* g) : graph(g)
     {}
     virtual ~Pass() = default;
 
@@ -26,13 +26,13 @@ class Pass
         return is_optimization;
     }
 
-    Graph *getGraph() const noexcept
+    Graph* getGraph() const noexcept
     {
         return graph;
     }
 
   protected:
-    Graph *graph = nullptr;
+    Graph* graph = nullptr;
     bool is_analysis = false;
     bool is_optimization = false;
 };
@@ -40,7 +40,7 @@ class Pass
 class Analysis : public Pass
 {
   public:
-    explicit Analysis(Graph *g) : Pass(g)
+    explicit Analysis(Graph* g) : Pass(g)
     {
         is_analysis = true;
     }
@@ -67,7 +67,7 @@ class Analysis : public Pass
 class Optimization : public Pass
 {
   public:
-    explicit Optimization(Graph *g) : Pass(g)
+    explicit Optimization(Graph* g) : Pass(g)
     {
         is_optimization = true;
     }

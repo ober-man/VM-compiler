@@ -70,52 +70,52 @@ class BasicBlock
         graph = graph_;
     }
 
-    std::vector<BasicBlock *> &getPreds() noexcept
+    std::vector<BasicBlock*>& getPreds() noexcept
     {
         return preds;
     }
 
-    BasicBlock *getTrueSucc() const noexcept
+    BasicBlock* getTrueSucc() const noexcept
     {
         return true_succ;
     }
 
-    BasicBlock *getFalseSucc() const noexcept
+    BasicBlock* getFalseSucc() const noexcept
     {
         return false_succ;
     }
 
-    void setTrueSucc(BasicBlock *bb) noexcept
+    void setTrueSucc(BasicBlock* bb) noexcept
     {
         true_succ = bb;
     }
 
-    void setFalseSucc(BasicBlock *bb) noexcept
+    void setFalseSucc(BasicBlock* bb) noexcept
     {
         false_succ = bb;
     }
 
-    Inst *getFirstInst() const noexcept
+    Inst* getFirstInst() const noexcept
     {
         return first_inst;
     }
 
-    Inst *getLastInst() const noexcept
+    Inst* getLastInst() const noexcept
     {
         return last_inst;
     }
 
-    Inst *getFirstPhi() const noexcept
+    Inst* getFirstPhi() const noexcept
     {
-        return static_cast<Inst *>(first_phi);
+        return static_cast<Inst*>(first_phi);
     }
 
-    Inst *getLastPhi() const noexcept
+    Inst* getLastPhi() const noexcept
     {
-        return static_cast<Inst *>(last_inst);
+        return static_cast<Inst*>(last_inst);
     }
 
-    Inst *getInst(size_t id)
+    Inst* getInst(size_t id)
     {
         for (auto inst = first_inst; inst != nullptr; inst = inst->getNext())
             if (inst->getId() == id)
@@ -123,39 +123,39 @@ class BasicBlock
         return nullptr;
     }
 
-    std::vector<BasicBlock *> &getDominators()
+    std::vector<BasicBlock*>& getDominators()
     {
         return dominators;
     }
 
-    BasicBlock *getIdom() const noexcept
+    BasicBlock* getIdom() const noexcept
     {
         return idom;
     }
 
-    Loop *getLoop() const noexcept
+    Loop* getLoop() const noexcept
     {
         return loop;
     }
 
-    void setLoop(Loop *loop_) noexcept
+    void setLoop(Loop* loop_) noexcept
     {
         loop = loop_;
     }
 
     bool isHeader() const noexcept;
 
-    LiveInterval *getLiveInterval() const noexcept
+    LiveInterval* getLiveInterval() const noexcept
     {
         return live_int;
     }
 
-    void setLiveInterval(LiveInterval *live) noexcept
+    void setLiveInterval(LiveInterval* live) noexcept
     {
         live_int = live;
     }
 
-    void pushBackInst(Inst *inst)
+    void pushBackInst(Inst* inst)
     {
         assert(inst->getInstType() != InstType::Phi);
         assert(!inst->getPrev() && "inserted inst has predecessor");
@@ -173,7 +173,7 @@ class BasicBlock
         ++bb_size;
     }
 
-    void pushBackPhiInst(PhiInst *inst)
+    void pushBackPhiInst(PhiInst* inst)
     {
         assert(inst->getInstType() == InstType::Phi);
         assert(!inst->getPrev() && "inserted inst has predecessor");
@@ -191,7 +191,7 @@ class BasicBlock
         ++bb_size;
     }
 
-    void pushFrontInst(Inst *inst)
+    void pushFrontInst(Inst* inst)
     {
         assert(inst->getInstType() != InstType::Phi);
         assert(!inst->getNext() && "inserted inst has successor");
@@ -209,7 +209,7 @@ class BasicBlock
         ++bb_size;
     }
 
-    void pushFrontPhiInst(PhiInst *inst)
+    void pushFrontPhiInst(PhiInst* inst)
     {
         assert(inst->getInstType() == InstType::Phi);
         assert(!inst->getNext() && "inserted inst has successor");
@@ -230,7 +230,7 @@ class BasicBlock
     /**
      * Insert inst after prev_inst
      */
-    void insertAfter(Inst *prev_inst, Inst *inst)
+    void insertAfter(Inst* prev_inst, Inst* inst)
     {
         assert(!inst->getPrev() && "inserted inst has predecessor");
         assert(!inst->getNext() && "inserted inst has successor");
@@ -271,7 +271,7 @@ class BasicBlock
         --bb_size;
     }
 
-    void removeInst(Inst *inst)
+    void removeInst(Inst* inst)
     {
         auto next_inst = inst->getNext();
         auto prev_inst = inst->getPrev();
@@ -282,13 +282,13 @@ class BasicBlock
         --bb_size;
     }
 
-    void addPred(BasicBlock *bb)
+    void addPred(BasicBlock* bb)
     {
         assert(std::find(preds.begin(), preds.end(), bb) == preds.end() && "pred already existed");
         preds.push_back(bb);
     }
 
-    void addSucc(BasicBlock *bb)
+    void addSucc(BasicBlock* bb)
     {
         if (true_succ == nullptr)
             true_succ = bb;
@@ -301,7 +301,7 @@ class BasicBlock
         }
     }
 
-    void removePred(BasicBlock *bb)
+    void removePred(BasicBlock* bb)
     {
         preds.erase(std::find(preds.begin(), preds.end(), bb));
     }
@@ -312,7 +312,7 @@ class BasicBlock
                                  [num](auto pred) { return pred->getId() == num; }));
     }
 
-    void removeSucc(BasicBlock *bb)
+    void removeSucc(BasicBlock* bb)
     {
         if (true_succ == bb)
             true_succ = nullptr;
@@ -332,10 +332,10 @@ class BasicBlock
             return;
     }
 
-    void replacePred(BasicBlock *pred, BasicBlock *bb);
-    void replacePred(size_t num, BasicBlock *bb);
+    void replacePred(BasicBlock* pred, BasicBlock* bb);
+    void replacePred(size_t num, BasicBlock* bb);
 
-    void replaceSucc(BasicBlock *succ, BasicBlock *bb)
+    void replaceSucc(BasicBlock* succ, BasicBlock* bb)
     {
         if (true_succ == succ)
             true_succ = bb;
@@ -348,7 +348,7 @@ class BasicBlock
         }
     }
 
-    void replaceSucc(size_t num, BasicBlock *bb)
+    void replaceSucc(size_t num, BasicBlock* bb)
     {
         if (true_succ->getId() == num)
             true_succ = bb;
@@ -365,15 +365,15 @@ class BasicBlock
     void resetMarker(marker_t marker);
     bool isMarked(marker_t marker) const;
 
-    void addDominator(BasicBlock *dom)
+    void addDominator(BasicBlock* dom)
     {
         dominators.push_back(dom);
     }
 
     // return true, if *this is a dominator of bb
-    bool isDominator(BasicBlock *bb)
+    bool isDominator(BasicBlock* bb)
     {
-        auto &doms = bb->getDominators();
+        auto& doms = bb->getDominators();
         return std::find(doms.begin(), doms.end(), this) != doms.end();
     }
 
@@ -386,7 +386,7 @@ class BasicBlock
             idom = dominators[dominators.size() - 2];
     }
 
-    void dump(std::ostream &out = std::cout) const;
+    void dump(std::ostream& out = std::cout) const;
 
   private:
     size_t id = 0;
@@ -394,22 +394,22 @@ class BasicBlock
     std::string name = "";
     std::shared_ptr<Graph> graph = nullptr;
 
-    std::vector<BasicBlock *> preds;
-    BasicBlock *true_succ;
-    BasicBlock *false_succ;
+    std::vector<BasicBlock*> preds;
+    BasicBlock* true_succ;
+    BasicBlock* false_succ;
 
-    Inst *first_inst = nullptr;
-    Inst *last_inst = nullptr;
-    PhiInst *first_phi = nullptr;
-    PhiInst *last_phi = nullptr;
+    Inst* first_inst = nullptr;
+    Inst* last_inst = nullptr;
+    PhiInst* first_phi = nullptr;
+    PhiInst* last_phi = nullptr;
 
-    std::vector<BasicBlock *> dominators;
-    BasicBlock *idom = nullptr;
+    std::vector<BasicBlock*> dominators;
+    BasicBlock* idom = nullptr;
 
     std::unique_ptr<MarkerSet> markers;
-    Loop *loop = nullptr;
+    Loop* loop = nullptr;
 
-    LiveInterval *live_int = nullptr;
+    LiveInterval* live_int = nullptr;
 };
 
 } // namespace compiler

@@ -4,13 +4,13 @@
 
 using namespace compiler;
 
-void checkDominators(BasicBlock *bb, std::vector<int> expected)
+void checkDominators(BasicBlock* bb, std::vector<int> expected)
 {
-    auto &doms = bb->getDominators();
+    auto& doms = bb->getDominators();
     size_t size = doms.size();
     ASSERT_EQ(size, expected.size());
 
-    auto compare = [](BasicBlock *bb1, BasicBlock *bb2) { return bb1->getId() < bb2->getId(); };
+    auto compare = [](BasicBlock* bb1, BasicBlock* bb2) { return bb1->getId() < bb2->getId(); };
     std::sort(doms.begin(), doms.end(), compare);
     std::sort(expected.begin(), expected.end());
 
@@ -27,44 +27,52 @@ void checkDominators(BasicBlock *bb, std::vector<int> expected)
  *             |    |           |
  *             v    |           |
  *            [3]   \--->[4]    |
- *                        |     |
- *                        v     |
- *                       [5]----/
+ *             |          |     |
+ *             |          v     |
+ *             |         [5]----/
+ *             |          |
+ *             |          v
+ *             \-------->[6]
  */
 TEST(DOMTREE_TEST, TEST1)
 {
     auto graph = std::make_shared<Graph>("dom_tree_test1");
 
-    auto *bb1 = new BasicBlock{1, graph};
-    auto *bb2 = new BasicBlock{2, graph};
-    auto *bb3 = new BasicBlock{3, graph};
-    auto *bb4 = new BasicBlock{4, graph};
-    auto *bb5 = new BasicBlock{5, graph};
+    auto* bb1 = new BasicBlock{1, graph};
+    auto* bb2 = new BasicBlock{2, graph};
+    auto* bb3 = new BasicBlock{3, graph};
+    auto* bb4 = new BasicBlock{4, graph};
+    auto* bb5 = new BasicBlock{5, graph};
+    auto* bb6 = new BasicBlock{6, graph};
 
     graph->insertBB(bb1);
     graph->insertBB(bb2);
     graph->insertBBAfter(bb2, bb3, true);
     graph->insertBBAfter(bb2, bb4, false);
     graph->insertBBAfter(bb4, bb5);
+    graph->insertBBAfter(bb5, bb6, false);
     bb5->addSucc(bb2);
+    graph->addEdge(bb3, bb6);
     // graph->dump();
 
     graph->runPassDomTree();
 
-    auto &bbs = graph->getRpoBBs();
-    ASSERT_EQ(bbs.size(), 5);
+    auto& bbs = graph->getRpoBBs();
+    ASSERT_EQ(bbs.size(), 6);
 
     checkDominators(bb1, {1});
     checkDominators(bb2, {1, 2});
     checkDominators(bb3, {1, 2, 3});
     checkDominators(bb4, {1, 2, 4});
     checkDominators(bb5, {1, 2, 4, 5});
+    checkDominators(bb6, {1, 2, 6});
 
     ASSERT_EQ(bb1->getIdom()->getId(), 1);
     ASSERT_EQ(bb2->getIdom()->getId(), 1);
     ASSERT_EQ(bb3->getIdom()->getId(), 2);
     ASSERT_EQ(bb4->getIdom()->getId(), 2);
     ASSERT_EQ(bb5->getIdom()->getId(), 4);
+    ASSERT_EQ(bb6->getIdom()->getId(), 2);
 }
 
 /**
@@ -84,12 +92,12 @@ TEST(DOMTREE_TEST, TEST2)
 {
     auto graph = std::make_shared<Graph>("dom_tree_test2");
 
-    auto *bb1 = new BasicBlock{1, graph};
-    auto *bb2 = new BasicBlock{2, graph};
-    auto *bb3 = new BasicBlock{3, graph};
-    auto *bb4 = new BasicBlock{4, graph};
-    auto *bb5 = new BasicBlock{5, graph};
-    auto *bb6 = new BasicBlock{6, graph};
+    auto* bb1 = new BasicBlock{1, graph};
+    auto* bb2 = new BasicBlock{2, graph};
+    auto* bb3 = new BasicBlock{3, graph};
+    auto* bb4 = new BasicBlock{4, graph};
+    auto* bb5 = new BasicBlock{5, graph};
+    auto* bb6 = new BasicBlock{6, graph};
 
     graph->insertBB(bb1);
     graph->insertBB(bb2);
@@ -103,7 +111,7 @@ TEST(DOMTREE_TEST, TEST2)
 
     graph->runPassDomTree();
 
-    auto &bbs = graph->getRpoBBs();
+    auto& bbs = graph->getRpoBBs();
     ASSERT_EQ(bbs.size(), 6);
 
     checkDominators(bb1, {1});
@@ -134,24 +142,28 @@ TEST(DOMTREE_TEST, TEST2)
  *         |   \--->[5]<---/   |   |
  *         v         |         |   |
  *        [6]        v         |   |
- *                  [7]--------/   |
- *                   |             |
- *                   v             |
- *                  [8]------------/
+ *         |        [7]--------/   |
+ *         |         |             |
+ *         |         v             |
+ *         |        [8]------------/
+ *         |         |
+ *         |         v
+ *         \------->[9]
  *
  */
 TEST(DOMTREE_TEST, TEST3)
 {
     auto graph = std::make_shared<Graph>("dom_tree_test3");
 
-    auto *bb1 = new BasicBlock{1, graph};
-    auto *bb2 = new BasicBlock{2, graph};
-    auto *bb3 = new BasicBlock{3, graph};
-    auto *bb4 = new BasicBlock{4, graph};
-    auto *bb5 = new BasicBlock{5, graph};
-    auto *bb6 = new BasicBlock{6, graph};
-    auto *bb7 = new BasicBlock{7, graph};
-    auto *bb8 = new BasicBlock{8, graph};
+    auto* bb1 = new BasicBlock{1, graph};
+    auto* bb2 = new BasicBlock{2, graph};
+    auto* bb3 = new BasicBlock{3, graph};
+    auto* bb4 = new BasicBlock{4, graph};
+    auto* bb5 = new BasicBlock{5, graph};
+    auto* bb6 = new BasicBlock{6, graph};
+    auto* bb7 = new BasicBlock{7, graph};
+    auto* bb8 = new BasicBlock{8, graph};
+    auto* bb9 = new BasicBlock{9, graph};
 
     graph->insertBB(bb1);
     graph->insertBB(bb2);
@@ -162,14 +174,16 @@ TEST(DOMTREE_TEST, TEST3)
     graph->addEdge(bb4, bb5);
     graph->insertBBAfter(bb5, bb7, true);
     graph->insertBBAfter(bb7, bb8, true);
+    graph->insertBBAfter(bb8, bb9, false);
     graph->addEdge(bb7, bb2);
     graph->addEdge(bb8, bb1);
+    graph->addEdge(bb6, bb9);
     // graph->dump();
 
     graph->runPassDomTree();
 
-    auto &bbs = graph->getRpoBBs();
-    ASSERT_EQ(bbs.size(), 8);
+    auto& bbs = graph->getRpoBBs();
+    ASSERT_EQ(bbs.size(), 9);
 
     checkDominators(bb1, {1});
     checkDominators(bb2, {1, 2});
@@ -179,6 +193,7 @@ TEST(DOMTREE_TEST, TEST3)
     checkDominators(bb6, {1, 2, 3, 6});
     checkDominators(bb7, {1, 2, 5, 7});
     checkDominators(bb8, {1, 2, 5, 7, 8});
+    checkDominators(bb9, {1, 2, 9});
 
     ASSERT_EQ(bb1->getIdom()->getId(), 1);
     ASSERT_EQ(bb2->getIdom()->getId(), 1);
@@ -188,6 +203,7 @@ TEST(DOMTREE_TEST, TEST3)
     ASSERT_EQ(bb6->getIdom()->getId(), 3);
     ASSERT_EQ(bb7->getIdom()->getId(), 5);
     ASSERT_EQ(bb8->getIdom()->getId(), 7);
+    ASSERT_EQ(bb9->getIdom()->getId(), 2);
 }
 
 /**
@@ -207,13 +223,13 @@ TEST(DOMTREE_TEST, TEST4)
 {
     auto graph = std::make_shared<Graph>("dom_tree_test4");
 
-    auto *bb1 = new BasicBlock{1, graph};
-    auto *bb2 = new BasicBlock{2, graph};
-    auto *bb3 = new BasicBlock{3, graph};
-    auto *bb4 = new BasicBlock{4, graph};
-    auto *bb5 = new BasicBlock{5, graph};
-    auto *bb6 = new BasicBlock{6, graph};
-    auto *bb7 = new BasicBlock{7, graph};
+    auto* bb1 = new BasicBlock{1, graph};
+    auto* bb2 = new BasicBlock{2, graph};
+    auto* bb3 = new BasicBlock{3, graph};
+    auto* bb4 = new BasicBlock{4, graph};
+    auto* bb5 = new BasicBlock{5, graph};
+    auto* bb6 = new BasicBlock{6, graph};
+    auto* bb7 = new BasicBlock{7, graph};
 
     graph->insertBB(bb1);
     graph->insertBB(bb2);
@@ -228,7 +244,7 @@ TEST(DOMTREE_TEST, TEST4)
 
     graph->runPassDomTree();
 
-    auto &bbs = graph->getRpoBBs();
+    auto& bbs = graph->getRpoBBs();
     ASSERT_EQ(bbs.size(), 7);
 
     checkDominators(bb1, {1});
@@ -277,17 +293,17 @@ TEST(DOMTREE_TEST, TEST5)
 {
     auto graph = std::make_shared<Graph>("dom_tree_test5");
 
-    auto *bb1 = new BasicBlock{1, graph};
-    auto *bb2 = new BasicBlock{2, graph};
-    auto *bb3 = new BasicBlock{3, graph};
-    auto *bb4 = new BasicBlock{4, graph};
-    auto *bb5 = new BasicBlock{5, graph};
-    auto *bb6 = new BasicBlock{6, graph};
-    auto *bb7 = new BasicBlock{7, graph};
-    auto *bb8 = new BasicBlock{8, graph};
-    auto *bb9 = new BasicBlock{9, graph};
-    auto *bb10 = new BasicBlock{10, graph};
-    auto *bb11 = new BasicBlock{11, graph};
+    auto* bb1 = new BasicBlock{1, graph};
+    auto* bb2 = new BasicBlock{2, graph};
+    auto* bb3 = new BasicBlock{3, graph};
+    auto* bb4 = new BasicBlock{4, graph};
+    auto* bb5 = new BasicBlock{5, graph};
+    auto* bb6 = new BasicBlock{6, graph};
+    auto* bb7 = new BasicBlock{7, graph};
+    auto* bb8 = new BasicBlock{8, graph};
+    auto* bb9 = new BasicBlock{9, graph};
+    auto* bb10 = new BasicBlock{10, graph};
+    auto* bb11 = new BasicBlock{11, graph};
 
     graph->insertBB(bb1);
     graph->insertBB(bb2);
@@ -308,7 +324,7 @@ TEST(DOMTREE_TEST, TEST5)
 
     graph->runPassDomTree();
 
-    auto &bbs = graph->getRpoBBs();
+    auto& bbs = graph->getRpoBBs();
     ASSERT_EQ(bbs.size(), 11);
 
     checkDominators(bb1, {1});
@@ -361,15 +377,15 @@ TEST(DOMTREE_TEST, TEST6)
 {
     auto graph = std::make_shared<Graph>("dom_tree_test6");
 
-    auto *bb1 = new BasicBlock{1, graph};
-    auto *bb2 = new BasicBlock{2, graph};
-    auto *bb3 = new BasicBlock{3, graph};
-    auto *bb4 = new BasicBlock{4, graph};
-    auto *bb5 = new BasicBlock{5, graph};
-    auto *bb6 = new BasicBlock{6, graph};
-    auto *bb7 = new BasicBlock{7, graph};
-    auto *bb8 = new BasicBlock{8, graph};
-    auto *bb9 = new BasicBlock{9, graph};
+    auto* bb1 = new BasicBlock{1, graph};
+    auto* bb2 = new BasicBlock{2, graph};
+    auto* bb3 = new BasicBlock{3, graph};
+    auto* bb4 = new BasicBlock{4, graph};
+    auto* bb5 = new BasicBlock{5, graph};
+    auto* bb6 = new BasicBlock{6, graph};
+    auto* bb7 = new BasicBlock{7, graph};
+    auto* bb8 = new BasicBlock{8, graph};
+    auto* bb9 = new BasicBlock{9, graph};
 
     graph->insertBB(bb1);
     graph->insertBB(bb2);
@@ -389,7 +405,7 @@ TEST(DOMTREE_TEST, TEST6)
 
     graph->runPassDomTree();
 
-    auto &bbs = graph->getRpoBBs();
+    auto& bbs = graph->getRpoBBs();
     ASSERT_EQ(bbs.size(), 9);
 
     checkDominators(bb1, {1});

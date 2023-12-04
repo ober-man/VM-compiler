@@ -14,7 +14,7 @@ class Loop;
 class LoopAnalysis final : public Analysis
 {
   public:
-    explicit LoopAnalysis(Graph *g) : Analysis(g)
+    explicit LoopAnalysis(Graph* g) : Analysis(g)
     {}
     ~LoopAnalysis() override = default;
 
@@ -26,11 +26,10 @@ class LoopAnalysis final : public Analysis
     }
 
   private:
-    void findLoopsRec(BasicBlock *bb, BasicBlock *prev_bb);
+    void findLoopsRec(BasicBlock* bb, BasicBlock* prev_bb);
     void populateLoops();
-    void fillLoopRec(Loop *loop, BasicBlock *bb);
+    void fillLoopRec(Loop* loop, BasicBlock* bb);
     void buildLoopTree();
-    void sortLoopsBodiesRec(Loop *loop);
 
   private:
     marker_t gray_mrk;
@@ -40,18 +39,19 @@ class LoopAnalysis final : public Analysis
 class Loop final
 {
   public:
-    explicit Loop(BasicBlock *header_, BasicBlock *latch = nullptr, bool is_irreducible_ = false)
+    explicit Loop(BasicBlock* header_, BasicBlock* latch = nullptr, bool is_irreducible_ = false)
         : header(header_), is_irreducible(is_irreducible_)
     {
         body.reserve(LOOP_BLOCKS_NUM);
         latches.reserve(LOOP_LATCHES_NUM);
         inners.reserve(LOOP_INNERS_NUM);
-        addLatch(latch);
+        if (latch)
+            addLatch(latch);
     }
 
     ~Loop()
     {
-        for (auto *inner : inners)
+        for (auto* inner : inners)
             delete inner;
     }
 
@@ -65,63 +65,63 @@ class Loop final
         is_irreducible = is_irreducible_;
     }
 
-    BasicBlock *getHeader() const noexcept
+    BasicBlock* getHeader() const noexcept
     {
         return header;
     }
 
-    void setHeader(BasicBlock *bb) noexcept
+    void setHeader(BasicBlock* bb) noexcept
     {
         header = bb;
     }
 
-    Loop *getOuterLoop() const noexcept
+    Loop* getOuterLoop() const noexcept
     {
         return outer;
     }
 
-    void setOuterLoop(Loop *outer_) noexcept
+    void setOuterLoop(Loop* outer_) noexcept
     {
         outer = outer_;
     }
 
-    std::vector<BasicBlock *> &getBody() noexcept
+    std::vector<BasicBlock*>& getBody() noexcept
     {
         return body;
     }
 
-    std::vector<BasicBlock *> &getLatches() noexcept
+    std::vector<BasicBlock*>& getLatches() noexcept
     {
         return latches;
     }
 
-    std::vector<Loop *> &getInnerLoops() noexcept
+    std::vector<Loop*>& getInnerLoops() noexcept
     {
         return inners;
     }
 
-    void addBlock(BasicBlock *bb)
+    void addBlock(BasicBlock* bb)
     {
         body.push_back(bb);
     }
 
-    void addLatch(BasicBlock *latch)
+    void addLatch(BasicBlock* latch)
     {
         latches.push_back(latch);
     }
 
-    void addInner(Loop *inner)
+    void addInner(Loop* inner)
     {
         inners.push_back(inner);
     }
 
   private:
-    BasicBlock *header = nullptr;
-    std::vector<BasicBlock *> body;
-    std::vector<BasicBlock *> latches;
+    BasicBlock* header = nullptr;
+    std::vector<BasicBlock*> body;
+    std::vector<BasicBlock*> latches;
 
-    Loop *outer = nullptr;
-    std::vector<Loop *> inners;
+    Loop* outer = nullptr;
+    std::vector<Loop*> inners;
 
     bool is_irreducible = false;
 };

@@ -23,9 +23,9 @@ bool LinearOrder::runPassImpl()
 
 void LinearOrder::processBBs()
 {
-    auto &rpo_bbs = graph->getRpoBBs();
+    auto& rpo_bbs = graph->getRpoBBs();
 
-    for (auto *bb : rpo_bbs)
+    for (auto* bb : rpo_bbs)
     {
         if (bb->isMarked(mrk))
             continue;
@@ -41,10 +41,10 @@ void LinearOrder::processBBs()
     }
 }
 
-void LinearOrder::processLoop(Loop *loop)
+void LinearOrder::processLoop(Loop* loop)
 {
-    auto &body = loop->getBody();
-    for (auto *bb : body)
+    auto& body = loop->getBody();
+    for (auto* bb : body)
     {
         if (bb->isMarked(mrk))
             continue;
@@ -52,7 +52,7 @@ void LinearOrder::processLoop(Loop *loop)
         // process inner loops
         if (bb->isHeader())
         {
-            Loop *inner_loop = bb->getLoop();
+            Loop* inner_loop = bb->getLoop();
             if (inner_loop != loop && !inner_loop->isIrreducible())
             {
                 processLoop(inner_loop);

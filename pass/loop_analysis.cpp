@@ -17,7 +17,7 @@ bool LoopAnalysis::runPassImpl()
     gray_mrk = graph->getNewMarker();
     black_mrk = graph->getNewMarker();
 
-    auto *firstBB = graph->getFirstBB();
+    auto* firstBB = graph->getFirstBB();
     findLoopsRec(firstBB, nullptr);
 
     graph->deleteMarker(gray_mrk);
@@ -28,12 +28,12 @@ bool LoopAnalysis::runPassImpl()
     return true;
 }
 
-void LoopAnalysis::findLoopsRec(BasicBlock *bb, BasicBlock *prev_bb)
+void LoopAnalysis::findLoopsRec(BasicBlock* bb, BasicBlock* prev_bb)
 {
     if (bb->isMarked(gray_mrk))
     {
         // we met a back edge
-        Loop *loop = bb->getLoop();
+        Loop* loop = bb->getLoop();
         if (loop != nullptr)
         {
             loop->addLatch(prev_bb);
@@ -58,8 +58,8 @@ void LoopAnalysis::findLoopsRec(BasicBlock *bb, BasicBlock *prev_bb)
     bb->setMarker(black_mrk);
 
     // visit successors
-    auto *true_succ = bb->getTrueSucc();
-    auto *false_succ = bb->getFalseSucc();
+    auto* true_succ = bb->getTrueSucc();
+    auto* false_succ = bb->getFalseSucc();
     if (true_succ != nullptr)
         findLoopsRec(true_succ, bb);
     if (false_succ != nullptr)
@@ -71,17 +71,17 @@ void LoopAnalysis::findLoopsRec(BasicBlock *bb, BasicBlock *prev_bb)
 
 void LoopAnalysis::populateLoops()
 {
-    auto &rpo_bbs = graph->getRpoBBs();
+    auto& rpo_bbs = graph->getRpoBBs();
     for (auto it = rpo_bbs.rbegin(), first = rpo_bbs.rend(); it != first; ++it)
     {
-        auto *bb = *it;
-        auto *loop = bb->getLoop();
+        auto* bb = *it;
+        auto* loop = bb->getLoop();
 
         // consider only loop headers
         if (loop == nullptr || loop->getHeader() != bb)
             continue;
 
-        auto &latches = loop->getLatches();
+        auto& latches = loop->getLatches();
 
         if (loop->isIrreducible())
         {
@@ -107,7 +107,7 @@ void LoopAnalysis::populateLoops()
     }
 }
 
-void LoopAnalysis::fillLoopRec(Loop *loop, BasicBlock *bb)
+void LoopAnalysis::fillLoopRec(Loop* loop, BasicBlock* bb)
 {
     if (bb->isMarked(gray_mrk))
     {
@@ -116,10 +116,9 @@ void LoopAnalysis::fillLoopRec(Loop *loop, BasicBlock *bb)
     }
 
     bb->setMarker(gray_mrk);
-    loop->addBlock(bb);
 
     // add inner-outer loops
-    Loop *bb_loop = bb->getLoop();
+    Loop* bb_loop = bb->getLoop();
     if (bb_loop != nullptr)
     {
         if (bb_loop->getOuterLoop() == nullptr)
@@ -129,20 +128,23 @@ void LoopAnalysis::fillLoopRec(Loop *loop, BasicBlock *bb)
         }
     }
     else
+    {
         bb->setLoop(loop);
+        loop->addBlock(bb);
+    }
 
     // process blocks going up
-    auto &preds = bb->getPreds();
-    for (auto *pred : preds)
+    auto& preds = bb->getPreds();
+    for (auto* pred : preds)
         fillLoopRec(loop, pred);
 }
 
 void LoopAnalysis::buildLoopTree()
 {
-    Loop *root_loop = new Loop{nullptr};
-    auto &bbs = graph->getBBs();
+    Loop* root_loop = new Loop{nullptr};
+    auto& bbs = graph->getBBs();
 
-    for (auto *graph_bb : bbs)
+    for (auto* graph_bb : bbs)
     {
         auto bb_loop = graph_bb->getLoop();
         if (bb_loop == nullptr)
@@ -155,29 +157,16 @@ void LoopAnalysis::buildLoopTree()
             root_loop->addInner(bb_loop);
 
             // for irreducible loops
-            auto &bbs = bb_loop->getBody();
-            for (auto *loop_bb : bbs)
+            auto& bbs = bb_loop->getBody();
+            for (auto* loop_bb : bbs)
             {
-                auto *loop = loop_bb->getLoop();
+                auto* loop = loop_bb->getLoop();
                 if (loop->getOuterLoop() == nullptr)
                     loop->setOuterLoop(root_loop);
             }
         }
     }
     graph->setRootLoop(root_loop);
-    sortLoopsBodiesRec(root_loop);
-}
-
-auto compare = [](BasicBlock *bb1, BasicBlock *bb2) { return bb1->getId() < bb2->getId(); };
-
-void LoopAnalysis::sortLoopsBodiesRec(Loop *loop)
-{
-    auto &body = loop->getBody();
-    std::sort(body.begin(), body.end(), compare);
-
-    auto &inners = loop->getInnerLoops();
-    for (auto *loop : inners)
-        sortLoopsBodiesRec(loop);
 }
 
 } // namespace compiler

@@ -10,7 +10,7 @@ namespace compiler
 
 Graph::~Graph()
 {
-    for (auto *bb : BBs)
+    for (auto* bb : BBs)
         delete bb;
     if (root_loop != nullptr)
         delete root_loop;
@@ -56,7 +56,7 @@ void Graph::deleteMarker(marker_t marker)
         bb->resetMarker(marker);
 }
 
-void Graph::insertBB(BasicBlock *bb)
+void Graph::insertBB(BasicBlock* bb)
 {
     if (graph_size == 0)
     {
@@ -65,7 +65,7 @@ void Graph::insertBB(BasicBlock *bb)
         return;
     }
 
-    auto *pred = BBs[graph_size - 1];
+    auto* pred = BBs[graph_size - 1];
     pred->addSucc(bb);
     bb->addPred(pred);
     BBs.push_back(bb);
@@ -75,11 +75,11 @@ void Graph::insertBB(BasicBlock *bb)
 /**
  * Insert bb after prev_bb
  */
-void Graph::insertBBAfter(BasicBlock *prev_bb, BasicBlock *bb, bool is_true_succ)
+void Graph::insertBBAfter(BasicBlock* prev_bb, BasicBlock* bb, bool is_true_succ)
 {
     if (is_true_succ)
     {
-        auto *true_succ = prev_bb->getTrueSucc();
+        auto* true_succ = prev_bb->getTrueSucc();
         prev_bb->setTrueSucc(bb);
         bb->addPred(prev_bb);
 
@@ -88,7 +88,7 @@ void Graph::insertBBAfter(BasicBlock *prev_bb, BasicBlock *bb, bool is_true_succ
     }
     else
     {
-        auto *false_succ = prev_bb->getFalseSucc();
+        auto* false_succ = prev_bb->getFalseSucc();
         prev_bb->setFalseSucc(bb);
         bb->addPred(prev_bb);
 
@@ -99,20 +99,20 @@ void Graph::insertBBAfter(BasicBlock *prev_bb, BasicBlock *bb, bool is_true_succ
     ++graph_size;
 }
 
-void Graph::addEdge(BasicBlock *prev_bb, BasicBlock *bb)
+void Graph::addEdge(BasicBlock* prev_bb, BasicBlock* bb)
 {
     bb->addPred(prev_bb);
     prev_bb->addSucc(bb);
 }
 
-void Graph::replaceBB(BasicBlock *bb, BasicBlock *new_bb)
+void Graph::replaceBB(BasicBlock* bb, BasicBlock* new_bb)
 {
     auto it = std::find(BBs.begin(), BBs.end(), bb);
     assert(it != BBs.end() && "replace not existing bb");
     BBs[(*it)->getId()] = new_bb;
 }
 
-void Graph::replaceBB(size_t num, BasicBlock *new_bb)
+void Graph::replaceBB(size_t num, BasicBlock* new_bb)
 {
     auto it = std::find_if(BBs.begin(), BBs.end(), [num](auto bb) { return bb->getId() == num; });
     assert(it != BBs.end() && "replace not existing bb");

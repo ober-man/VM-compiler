@@ -4,7 +4,7 @@
 
 using namespace compiler;
 
-void checkLinearOrder(std::vector<BasicBlock *> &bbs, std::vector<int> expected)
+void checkLinearOrder(std::vector<BasicBlock*>& bbs, std::vector<int> expected)
 {
     size_t size = bbs.size();
     ASSERT_EQ(size, expected.size());
@@ -21,31 +21,37 @@ void checkLinearOrder(std::vector<BasicBlock *> &bbs, std::vector<int> expected)
  *             |    |           |
  *             v    |           |
  *            [3]   \--->[4]    |
- *                        |     |
- *                        v     |
- *                       [5]----/
+ *             |          |     |
+ *             |          v     |
+ *             |         [5]----/
+ *             |          |
+ *             |          v
+ *             \-------->[6]
  */
 TEST(LINEAR_TEST, TEST1)
 {
     auto graph = std::make_shared<Graph>("linear_test1");
 
-    auto *bb1 = new BasicBlock{1, graph};
-    auto *bb2 = new BasicBlock{2, graph};
-    auto *bb3 = new BasicBlock{3, graph};
-    auto *bb4 = new BasicBlock{4, graph};
-    auto *bb5 = new BasicBlock{5, graph};
+    auto* bb1 = new BasicBlock{1, graph};
+    auto* bb2 = new BasicBlock{2, graph};
+    auto* bb3 = new BasicBlock{3, graph};
+    auto* bb4 = new BasicBlock{4, graph};
+    auto* bb5 = new BasicBlock{5, graph};
+    auto* bb6 = new BasicBlock{6, graph};
 
     graph->insertBB(bb1);
     graph->insertBB(bb2);
     graph->insertBBAfter(bb2, bb3, true);
     graph->insertBBAfter(bb2, bb4, false);
     graph->insertBBAfter(bb4, bb5);
+    graph->insertBBAfter(bb5, bb6, false);
     bb5->addSucc(bb2);
+    graph->addEdge(bb3, bb6);
     // graph->dump();
 
     graph->runPassLinearOrder();
 
-    auto &lin_BBs = graph->getLinearOrderBBs();
+    auto& lin_BBs = graph->getLinearOrderBBs();
     checkLinearOrder(lin_BBs, {1, 2, 4, 5, 3});
 }
 
@@ -66,12 +72,12 @@ TEST(LINEAR_TEST, TEST2)
 {
     auto graph = std::make_shared<Graph>("linear_test2");
 
-    auto *bb1 = new BasicBlock{1, graph};
-    auto *bb2 = new BasicBlock{2, graph};
-    auto *bb3 = new BasicBlock{3, graph};
-    auto *bb4 = new BasicBlock{4, graph};
-    auto *bb5 = new BasicBlock{5, graph};
-    auto *bb6 = new BasicBlock{6, graph};
+    auto* bb1 = new BasicBlock{1, graph};
+    auto* bb2 = new BasicBlock{2, graph};
+    auto* bb3 = new BasicBlock{3, graph};
+    auto* bb4 = new BasicBlock{4, graph};
+    auto* bb5 = new BasicBlock{5, graph};
+    auto* bb6 = new BasicBlock{6, graph};
 
     graph->insertBB(bb1);
     graph->insertBB(bb2);
@@ -85,7 +91,7 @@ TEST(LINEAR_TEST, TEST2)
 
     graph->runPassLinearOrder();
 
-    auto &lin_BBs = graph->getLinearOrderBBs();
+    auto& lin_BBs = graph->getLinearOrderBBs();
     checkLinearOrder(lin_BBs, {1, 2, 3, 4, 6, 5});
 }
 
@@ -102,24 +108,28 @@ TEST(LINEAR_TEST, TEST2)
  *         |   \--->[5]<---/   |   |
  *         v         |         |   |
  *        [6]        v         |   |
- *                  [7]--------/   |
- *                   |             |
- *                   v             |
- *                  [8]------------/
+ *         |        [7]--------/   |
+ *         |         |             |
+ *         |         v             |
+ *         |        [8]------------/
+ *         |         |
+ *         |         v
+ *         \------->[9]
  *
  */
 TEST(LINEAR_TEST, TEST3)
 {
     auto graph = std::make_shared<Graph>("linear_test3");
 
-    auto *bb1 = new BasicBlock{1, graph};
-    auto *bb2 = new BasicBlock{2, graph};
-    auto *bb3 = new BasicBlock{3, graph};
-    auto *bb4 = new BasicBlock{4, graph};
-    auto *bb5 = new BasicBlock{5, graph};
-    auto *bb6 = new BasicBlock{6, graph};
-    auto *bb7 = new BasicBlock{7, graph};
-    auto *bb8 = new BasicBlock{8, graph};
+    auto* bb1 = new BasicBlock{1, graph};
+    auto* bb2 = new BasicBlock{2, graph};
+    auto* bb3 = new BasicBlock{3, graph};
+    auto* bb4 = new BasicBlock{4, graph};
+    auto* bb5 = new BasicBlock{5, graph};
+    auto* bb6 = new BasicBlock{6, graph};
+    auto* bb7 = new BasicBlock{7, graph};
+    auto* bb8 = new BasicBlock{8, graph};
+    auto* bb9 = new BasicBlock{9, graph};
 
     graph->insertBB(bb1);
     graph->insertBB(bb2);
@@ -130,13 +140,15 @@ TEST(LINEAR_TEST, TEST3)
     graph->addEdge(bb4, bb5);
     graph->insertBBAfter(bb5, bb7, true);
     graph->insertBBAfter(bb7, bb8, true);
+    graph->insertBBAfter(bb8, bb9, false);
     graph->addEdge(bb7, bb2);
     graph->addEdge(bb8, bb1);
+    graph->addEdge(bb6, bb9);
     // graph->dump();
 
     graph->runPassLinearOrder();
 
-    auto &lin_BBs = graph->getLinearOrderBBs();
+    auto& lin_BBs = graph->getLinearOrderBBs();
     checkLinearOrder(lin_BBs, {1, 2, 3, 4, 5, 7, 8, 6});
 }
 
@@ -157,13 +169,13 @@ TEST(LINEAR_TEST, TEST4)
 {
     auto graph = std::make_shared<Graph>("linear_test4");
 
-    auto *bb1 = new BasicBlock{1, graph};
-    auto *bb2 = new BasicBlock{2, graph};
-    auto *bb3 = new BasicBlock{3, graph};
-    auto *bb4 = new BasicBlock{4, graph};
-    auto *bb5 = new BasicBlock{5, graph};
-    auto *bb6 = new BasicBlock{6, graph};
-    auto *bb7 = new BasicBlock{7, graph};
+    auto* bb1 = new BasicBlock{1, graph};
+    auto* bb2 = new BasicBlock{2, graph};
+    auto* bb3 = new BasicBlock{3, graph};
+    auto* bb4 = new BasicBlock{4, graph};
+    auto* bb5 = new BasicBlock{5, graph};
+    auto* bb6 = new BasicBlock{6, graph};
+    auto* bb7 = new BasicBlock{7, graph};
 
     graph->insertBB(bb1);
     graph->insertBB(bb2);
@@ -178,7 +190,7 @@ TEST(LINEAR_TEST, TEST4)
 
     graph->runPassLinearOrder();
 
-    auto &lin_BBs = graph->getLinearOrderBBs();
+    auto& lin_BBs = graph->getLinearOrderBBs();
     checkLinearOrder(lin_BBs, {1, 2, 6, 7, 5, 3, 4});
 }
 
@@ -211,17 +223,17 @@ TEST(LINEAR_TEST, TEST5)
 {
     auto graph = std::make_shared<Graph>("linear_test5");
 
-    auto *bb1 = new BasicBlock{1, graph};
-    auto *bb2 = new BasicBlock{2, graph};
-    auto *bb3 = new BasicBlock{3, graph};
-    auto *bb4 = new BasicBlock{4, graph};
-    auto *bb5 = new BasicBlock{5, graph};
-    auto *bb6 = new BasicBlock{6, graph};
-    auto *bb7 = new BasicBlock{7, graph};
-    auto *bb8 = new BasicBlock{8, graph};
-    auto *bb9 = new BasicBlock{9, graph};
-    auto *bb10 = new BasicBlock{10, graph};
-    auto *bb11 = new BasicBlock{11, graph};
+    auto* bb1 = new BasicBlock{1, graph};
+    auto* bb2 = new BasicBlock{2, graph};
+    auto* bb3 = new BasicBlock{3, graph};
+    auto* bb4 = new BasicBlock{4, graph};
+    auto* bb5 = new BasicBlock{5, graph};
+    auto* bb6 = new BasicBlock{6, graph};
+    auto* bb7 = new BasicBlock{7, graph};
+    auto* bb8 = new BasicBlock{8, graph};
+    auto* bb9 = new BasicBlock{9, graph};
+    auto* bb10 = new BasicBlock{10, graph};
+    auto* bb11 = new BasicBlock{11, graph};
 
     graph->insertBB(bb1);
     graph->insertBB(bb2);
@@ -242,7 +254,7 @@ TEST(LINEAR_TEST, TEST5)
 
     graph->runPassLinearOrder();
 
-    auto &lin_BBs = graph->getLinearOrderBBs();
+    auto& lin_BBs = graph->getLinearOrderBBs();
     checkLinearOrder(lin_BBs, {1, 2, 3, 4, 5, 6, 7, 8, 11, 9, 10});
 }
 
@@ -271,15 +283,15 @@ TEST(LINEAR_TEST, TEST6)
 {
     auto graph = std::make_shared<Graph>("linear_test6");
 
-    auto *bb1 = new BasicBlock{1, graph};
-    auto *bb2 = new BasicBlock{2, graph};
-    auto *bb3 = new BasicBlock{3, graph};
-    auto *bb4 = new BasicBlock{4, graph};
-    auto *bb5 = new BasicBlock{5, graph};
-    auto *bb6 = new BasicBlock{6, graph};
-    auto *bb7 = new BasicBlock{7, graph};
-    auto *bb8 = new BasicBlock{8, graph};
-    auto *bb9 = new BasicBlock{9, graph};
+    auto* bb1 = new BasicBlock{1, graph};
+    auto* bb2 = new BasicBlock{2, graph};
+    auto* bb3 = new BasicBlock{3, graph};
+    auto* bb4 = new BasicBlock{4, graph};
+    auto* bb5 = new BasicBlock{5, graph};
+    auto* bb6 = new BasicBlock{6, graph};
+    auto* bb7 = new BasicBlock{7, graph};
+    auto* bb8 = new BasicBlock{8, graph};
+    auto* bb9 = new BasicBlock{9, graph};
 
     graph->insertBB(bb1);
     graph->insertBB(bb2);
@@ -298,6 +310,6 @@ TEST(LINEAR_TEST, TEST6)
 
     graph->runPassLinearOrder();
 
-    auto &lin_BBs = graph->getLinearOrderBBs();
+    auto& lin_BBs = graph->getLinearOrderBBs();
     checkLinearOrder(lin_BBs, {1, 2, 5, 6, 8, 3, 4, 7, 9});
 }

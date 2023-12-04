@@ -23,7 +23,7 @@ class Graph;
 class PassManager final
 {
   public:
-    explicit PassManager(Graph *g) : graph(g)
+    explicit PassManager(Graph* g) : graph(g)
     {}
     ~PassManager();
 
@@ -36,18 +36,18 @@ class PassManager final
     bool runPassLinearOrder();
     bool runPassLivenessAnalysis();
 
-    Graph *getGraph() const noexcept
+    Graph* getGraph() const noexcept
     {
         return graph;
     }
 
-    void dumpAnalyses(std::ostream &out = std::cout);
-    void dumpOpts(std::ostream &out = std::cout);
+    void dumpAnalyses(std::ostream& out = std::cout);
+    void dumpOpts(std::ostream& out = std::cout);
 
   private:
-    Graph *graph = nullptr;
-    std::vector<Analysis *> analyses;
-    std::vector<Optimization *> opts;
+    Graph* graph = nullptr;
+    std::vector<Analysis*> analyses;
+    std::vector<Optimization*> opts;
 };
 
 } // namespace compiler

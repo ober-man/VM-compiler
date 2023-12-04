@@ -15,7 +15,7 @@ class LiveSet;
 class LivenessAnalysis final : public Analysis
 {
   public:
-    explicit LivenessAnalysis(Graph *g) : Analysis(g)
+    explicit LivenessAnalysis(Graph* g) : Analysis(g)
     {
         linear_bbs.reserve(GRAPH_BB_NUM);
     }
@@ -32,19 +32,19 @@ class LivenessAnalysis final : public Analysis
   private:
     void setInstsInitialNumbers();
     void buildLiveIntervals();
-    void insertInstLiveInterval(Inst *inst, size_t start, size_t end);
-    LiveSet *calcInitLiveSets(BasicBlock *bb);
-    void processSucc(BasicBlock *bb, BasicBlock *succ, LiveSet *live_set);
-    void appendBBIntervals(LiveSet *live_set, LiveInterval *live_int);
-    void processBBInsts(BasicBlock *bb, LiveSet *live_set);
-    void processInstInputs(Inst *inst, LiveSet *live_set, size_t start);
-    void processInput(Inst *input, LiveSet *live_set, size_t start, size_t live_num);
-    void processLoop(BasicBlock *header, LiveSet *live_set);
+    void insertInstLiveInterval(Inst* inst, size_t start, size_t end);
+    LiveSet* calcInitLiveSets(BasicBlock* bb);
+    void processSucc(BasicBlock* bb, BasicBlock* succ, LiveSet* live_set);
+    void appendBBIntervals(LiveSet* live_set, LiveInterval* live_int);
+    void processBBInsts(BasicBlock* bb, LiveSet* live_set);
+    void processInstInputs(Inst* inst, LiveSet* live_set, size_t start);
+    void processInput(Inst* input, LiveSet* live_set, size_t start, size_t live_num);
+    void processLoop(BasicBlock* header, LiveSet* live_set);
 
   private:
-    std::vector<BasicBlock *> linear_bbs;
-    std::unordered_map<Inst *, LiveInterval *> live_intervals;
-    std::unordered_map<BasicBlock *, LiveSet *> live_sets;
+    std::vector<BasicBlock*> linear_bbs;
+    std::unordered_map<Inst*, LiveInterval*> live_intervals;
+    std::unordered_map<BasicBlock*, LiveSet*> live_sets;
 };
 
 class LiveInterval
@@ -85,29 +85,29 @@ class LiveSet
     LiveSet() = default;
     ~LiveSet() = default;
 
-    void addInst(Inst *inst)
+    void addInst(Inst* inst)
     {
         live_set.insert(inst);
     }
 
-    void deleteInst(Inst *inst)
+    void deleteInst(Inst* inst)
     {
         live_set.erase(inst);
     }
 
-    void unite(LiveSet *live)
+    void unite(LiveSet* live)
     {
-        for (auto *inst : live->getLiveSet())
+        for (auto* inst : live->getLiveSet())
             live_set.insert(inst);
     }
 
-    std::set<Inst *> &getLiveSet() noexcept
+    std::set<Inst*>& getLiveSet() noexcept
     {
         return live_set;
     }
 
   private:
-    std::set<Inst *> live_set;
+    std::set<Inst*> live_set;
 };
 
 } // namespace compiler

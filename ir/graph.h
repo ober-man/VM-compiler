@@ -1,14 +1,14 @@
 #pragma once
 
-#include <iostream>
-#include <vector>
-#include <cassert>
-#include <memory>
-#include <algorithm>
-#include <unordered_map>
-#include "inst.h"
 #include "basicblock.h"
+#include "inst.h"
 #include "pass/passmanager.h"
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <memory>
+#include <unordered_map>
+#include <vector>
 
 namespace compiler
 {
@@ -53,71 +53,71 @@ class Graph
         return func_name;
     }
 
-    void setName(std::string &name) noexcept
+    void setName(std::string& name) noexcept
     {
         func_name = name;
     }
 
-    std::vector<BasicBlock *> &getBBs() noexcept
+    std::vector<BasicBlock*>& getBBs() noexcept
     {
         return BBs;
     }
 
-    std::vector<BasicBlock *> &getRpoBBs() noexcept
+    std::vector<BasicBlock*>& getRpoBBs() noexcept
     {
         return rpo_BBs;
     }
 
-    std::vector<BasicBlock *> &getLinearOrderBBs() noexcept
+    std::vector<BasicBlock*>& getLinearOrderBBs() noexcept
     {
         return linear_order_BBs;
     }
 
-    std::unordered_map<Inst *, LiveInterval *> &getLiveIntervals() noexcept
+    std::unordered_map<Inst*, LiveInterval*>& getLiveIntervals() noexcept
     {
         return live_intervals;
     }
 
-    void setRPOBBs(std::vector<BasicBlock *> &rpo) noexcept
+    void setRPOBBs(std::vector<BasicBlock*>& rpo) noexcept
     {
         rpo_BBs = rpo;
     }
 
-    void setLinearOrderBBs(std::vector<BasicBlock *> &linear) noexcept
+    void setLinearOrderBBs(std::vector<BasicBlock*>& linear) noexcept
     {
         linear_order_BBs = linear;
     }
 
-    void setLiveIntervals(std::unordered_map<Inst *, LiveInterval *> &live) noexcept
+    void setLiveIntervals(std::unordered_map<Inst*, LiveInterval*>& live) noexcept
     {
         live_intervals = live;
     }
 
-    Loop *getRootLoop() const noexcept
+    Loop* getRootLoop() const noexcept
     {
         return root_loop;
     }
 
-    void setRootLoop(Loop *loop_) noexcept
+    void setRootLoop(Loop* loop_) noexcept
     {
         root_loop = loop_;
     }
 
-    BasicBlock *getFirstBB() const noexcept
+    BasicBlock* getFirstBB() const noexcept
     {
         if (graph_size == 0)
             return nullptr;
         return BBs[0];
     }
 
-    BasicBlock *getLastBB() const noexcept
+    BasicBlock* getLastBB() const noexcept
     {
         if (graph_size == 0)
             return nullptr;
         return BBs[graph_size - 1];
     }
 
-    BasicBlock *getBB(size_t id) const noexcept
+    BasicBlock* getBB(size_t id) const noexcept
     {
         if (id >= graph_size)
             return nullptr;
@@ -125,7 +125,7 @@ class Graph
             return BBs[id];
     }
 
-    void removeBB(BasicBlock *bb)
+    void removeBB(BasicBlock* bb)
     {
         auto it = BBs.erase(std::find(BBs.begin(), BBs.end(), bb));
         assert(it != BBs.end() && "remove not existing bb");
@@ -138,16 +138,16 @@ class Graph
         assert(it != BBs.end() && "remove not existing bb");
     }
 
-    void insertBB(BasicBlock *bb);
-    void insertBBAfter(BasicBlock *prev_bb, BasicBlock *bb, bool is_true_succ = true);
-    void addEdge(BasicBlock *prev_bb, BasicBlock *bb);
-    void replaceBB(BasicBlock *bb, BasicBlock *new_bb);
-    void replaceBB(size_t num, BasicBlock *new_bb);
+    void insertBB(BasicBlock* bb);
+    void insertBBAfter(BasicBlock* prev_bb, BasicBlock* bb, bool is_true_succ = true);
+    void addEdge(BasicBlock* prev_bb, BasicBlock* bb);
+    void replaceBB(BasicBlock* bb, BasicBlock* new_bb);
+    void replaceBB(size_t num, BasicBlock* new_bb);
 
     marker_t getNewMarker();
     void deleteMarker(marker_t marker);
 
-    void dump(std::ostream &out = std::cout)
+    void dump(std::ostream& out = std::cout)
     {
         std::cout << "Graph for proc " << func_name << std::endl;
         std::for_each(BBs.begin(), BBs.end(), [&out](auto bb) { bb->dump(out); });
@@ -166,15 +166,15 @@ class Graph
     std::string func_name = "";
     size_t graph_size = 0;
 
-    std::vector<BasicBlock *> BBs;
-    std::vector<BasicBlock *> rpo_BBs;
-    std::vector<BasicBlock *> linear_order_BBs;
+    std::vector<BasicBlock*> BBs;
+    std::vector<BasicBlock*> rpo_BBs;
+    std::vector<BasicBlock*> linear_order_BBs;
 
     std::unique_ptr<PassManager> pm = nullptr;
     std::unique_ptr<MarkerManager> mm = nullptr;
-    Loop *root_loop = nullptr;
+    Loop* root_loop = nullptr;
 
-    std::unordered_map<Inst *, LiveInterval *> live_intervals;
+    std::unordered_map<Inst*, LiveInterval*> live_intervals;
 };
 
 /*

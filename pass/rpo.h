@@ -11,7 +11,7 @@ namespace compiler
 class Rpo final : public Analysis
 {
   public:
-    Rpo(Graph *g, marker_t marker);
+    Rpo(Graph* g, marker_t marker);
     ~Rpo() override = default;
 
     bool runPassImpl() override;
@@ -28,11 +28,11 @@ class Rpo final : public Analysis
     }
 
   private:
-    void visitBasicBlock(BasicBlock *bb);
+    void visitBasicBlock(BasicBlock* bb);
 
   private:
     // size_t cur_num;
-    std::vector<BasicBlock *> rpo_bbs;
+    std::vector<BasicBlock*> rpo_bbs;
     marker_t visited = NO_MARKER;
 };
 

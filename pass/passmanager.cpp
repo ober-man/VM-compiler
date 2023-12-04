@@ -11,17 +11,17 @@ namespace compiler
 
 PassManager::~PassManager()
 {
-    for (auto *analysis : analyses)
+    for (auto* analysis : analyses)
         delete analysis;
 
-    for (auto *opt : opts)
+    for (auto* opt : opts)
         delete opt;
 }
 
 // template <typename PassName, typename... Args>
 bool PassManager::runPassRpo(marker_t marker)
 {
-    auto *pass = new Rpo{graph, marker};
+    auto* pass = new Rpo{graph, marker};
     /*if (pass->isAnalysis())
         analyses.push_back(static_cast<Analysis*>(pass));
     else if (pass->isOptimization())
@@ -39,7 +39,7 @@ bool PassManager::runPassRpo(marker_t marker)
 
 bool PassManager::runPassDomTree()
 {
-    auto *pass = new DomTree{graph};
+    auto* pass = new DomTree{graph};
 
     if (!pass->runPassImpl())
     {
@@ -51,7 +51,7 @@ bool PassManager::runPassDomTree()
 
 bool PassManager::runPassLoopAnalysis()
 {
-    auto *pass = new LoopAnalysis{graph};
+    auto* pass = new LoopAnalysis{graph};
 
     if (!pass->runPassImpl())
     {
@@ -63,7 +63,7 @@ bool PassManager::runPassLoopAnalysis()
 
 bool PassManager::runPassLinearOrder()
 {
-    auto *pass = new LinearOrder{graph};
+    auto* pass = new LinearOrder{graph};
 
     if (!pass->runPassImpl())
     {
@@ -75,7 +75,7 @@ bool PassManager::runPassLinearOrder()
 
 bool PassManager::runPassLivenessAnalysis()
 {
-    auto *pass = new LivenessAnalysis{graph};
+    auto* pass = new LivenessAnalysis{graph};
 
     if (!pass->runPassImpl())
     {
@@ -85,15 +85,15 @@ bool PassManager::runPassLivenessAnalysis()
     return true;
 }
 
-void PassManager::dumpAnalyses(std::ostream &out)
+void PassManager::dumpAnalyses(std::ostream& out)
 {
     std::for_each(analyses.begin(), analyses.end(),
-                  [&out](auto *analysis) { out << analysis->getAnalysisName() << " "; });
+                  [&out](auto* analysis) { out << analysis->getAnalysisName() << " "; });
 }
 
-void PassManager::dumpOpts(std::ostream &out)
+void PassManager::dumpOpts(std::ostream& out)
 {
-    std::for_each(opts.begin(), opts.end(), [&out](auto *opt) { out << opt->getOptName() << " "; });
+    std::for_each(opts.begin(), opts.end(), [&out](auto* opt) { out << opt->getOptName() << " "; });
 }
 
 } // namespace compiler

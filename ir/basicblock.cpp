@@ -8,7 +8,7 @@ namespace compiler
 
 BasicBlock::~BasicBlock()
 {
-    Inst *inst = first_inst;
+    Inst* inst = first_inst;
     while (inst != nullptr)
     {
         first_inst = inst->getNext();
@@ -25,14 +25,14 @@ void BasicBlock::setId(size_t id_) noexcept
     id = id_;
 }
 
-void BasicBlock::replacePred(BasicBlock *pred, BasicBlock *bb)
+void BasicBlock::replacePred(BasicBlock* pred, BasicBlock* bb)
 {
     auto it = std::find(preds.begin(), preds.end(), pred);
     assert(it != preds.end() && "replace not existing pred");
     preds[(*it)->getId()] = bb;
 }
 
-void BasicBlock::replacePred(size_t num, BasicBlock *bb)
+void BasicBlock::replacePred(size_t num, BasicBlock* bb)
 {
     auto it =
         std::find_if(preds.begin(), preds.end(), [num](auto pred) { return pred->getId() == num; });
@@ -60,7 +60,7 @@ bool BasicBlock::isHeader() const noexcept
     return loop->getHeader() == this;
 }
 
-void BasicBlock::dump(std::ostream &out) const
+void BasicBlock::dump(std::ostream& out) const
 {
     out << "BB " << name << "[" << id << "/" << graph->size() << "]" << std::endl;
     out << "preds : ";
@@ -68,10 +68,10 @@ void BasicBlock::dump(std::ostream &out) const
                   [&out](auto pred) { out << "bb" << pred->getId() << " "; });
     out << "\n";
 
-    for (auto *phi = getFirstPhi(); phi != nullptr; phi = phi->getNext())
+    for (auto* phi = getFirstPhi(); phi != nullptr; phi = phi->getNext())
         phi->dump(out);
 
-    for (auto *inst = first_inst; inst != nullptr; inst = inst->getNext())
+    for (auto* inst = first_inst; inst != nullptr; inst = inst->getNext())
         inst->dump(out);
 
     out << "succs : ";

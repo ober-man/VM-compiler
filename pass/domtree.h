@@ -8,7 +8,7 @@ namespace compiler
 class DomTree final : public Analysis
 {
   public:
-    explicit DomTree(Graph *g) : Analysis(g)
+    explicit DomTree(Graph* g) : Analysis(g)
     {}
     ~DomTree() override = default;
 
@@ -21,15 +21,15 @@ class DomTree final : public Analysis
 
     void invalidateAnalysis() noexcept override
     {
-        for (auto *bb : bbs)
+        for (auto* bb : bbs)
             bb->getDominators().clear();
     }
 
   private:
-    auto getUnreachedBBs(std::vector<BasicBlock *> &reached);
+    auto getUnreachedBBs(std::vector<BasicBlock*>& reached);
 
   private:
-    std::vector<BasicBlock *> bbs;
+    std::vector<BasicBlock*> bbs;
 };
 
 } // namespace compiler

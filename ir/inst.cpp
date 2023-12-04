@@ -6,12 +6,12 @@ namespace compiler
 {
 
 template <typename T, typename... Args>
-Inst *createInst(Args &&... args)
+Inst* createInst(Args&&... args)
 {
     return T{std::forward<Args>(args)...};
 }
 
-void JumpInst::dump(std::ostream &out) const
+void JumpInst::dump(std::ostream& out) const
 {
     out << "\t"
         << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(op)] << " bb" << target->getId()
@@ -24,7 +24,7 @@ CallInst::CallInst(std::initializer_list<size_t> args_) : Inst(0, InstType::Call
         args.push_back(bb->getInst(arg));
 }
 
-void CallInst::dump(std::ostream &out) const
+void CallInst::dump(std::ostream& out) const
 {
     out << "\t"
         << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " "
@@ -34,11 +34,11 @@ void CallInst::dump(std::ostream &out) const
     out << ")" << std::endl;
 }
 
-void PhiInst::dump(std::ostream &out) const
+void PhiInst::dump(std::ostream& out) const
 {
     out << "\t"
         << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " ";
-    for (auto &&input : inputs)
+    for (auto&& input : inputs)
         out << "("
             << "v" << input.first->getId() << ", bb" << input.second->getId() << ") ";
     out << std::endl;

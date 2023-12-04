@@ -31,14 +31,14 @@ bool LivenessAnalysis::runPassImpl()
     return true;
 }
 
-void LivenessAnalysis::insertInstLiveInterval(Inst *inst, size_t start, size_t end)
+void LivenessAnalysis::insertInstLiveInterval(Inst* inst, size_t start, size_t end)
 {
     auto it = live_intervals.find(inst);
     if (it == live_intervals.end())
         live_intervals[inst] = new LiveInterval{start, end};
     else
     {
-        auto *cur_interval = (*it).second;
+        auto* cur_interval = (*it).second;
         auto cur_start = cur_interval->getIntervalStart();
         auto cur_end = cur_interval->getIntervalEnd();
 
@@ -53,17 +53,17 @@ void LivenessAnalysis::setInstsInitialNumbers()
     size_t cur_lin_num = 0;
     size_t cur_live_num = 0;
 
-    for (auto *bb : linear_bbs)
+    for (auto* bb : linear_bbs)
     {
         auto live = new LiveInterval{cur_live_num, cur_live_num};
-        for (auto *phi = bb->getFirstPhi(); phi != nullptr; phi = phi->getNext())
+        for (auto* phi = bb->getFirstPhi(); phi != nullptr; phi = phi->getNext())
         {
             phi->setLinearNum(cur_lin_num);
             phi->setLiveNum(cur_live_num);
             cur_lin_num += LINEAR_NUMBER_STEP;
         }
 
-        for (auto *inst = bb->getFirstInst(); inst != nullptr; inst = inst->getNext())
+        for (auto* inst = bb->getFirstInst(); inst != nullptr; inst = inst->getNext())
         {
             inst->setLinearNum(cur_lin_num);
             inst->setLiveNum(cur_live_num);
@@ -79,8 +79,8 @@ void LivenessAnalysis::buildLiveIntervals()
 {
     for (auto it = linear_bbs.rbegin(), first = linear_bbs.rend(); it != first; ++it)
     {
-        auto *bb = *it;
-        auto *live_set = calcInitLiveSets(bb);
+        auto* bb = *it;
+        auto* live_set = calcInitLiveSets(bb);
 
         appendBBIntervals(live_set, bb->getLiveInterval());
         processBBInsts(bb, live_set);
@@ -90,13 +90,13 @@ void LivenessAnalysis::buildLiveIntervals()
     }
 }
 
-LiveSet *LivenessAnalysis::calcInitLiveSets(BasicBlock *bb)
+LiveSet* LivenessAnalysis::calcInitLiveSets(BasicBlock* bb)
 {
-    auto *live_set = new LiveSet{};
+    auto* live_set = new LiveSet{};
     live_sets[bb] = live_set;
 
-    auto *true_succ = bb->getTrueSucc();
-    auto *false_succ = bb->getFalseSucc();
+    auto* true_succ = bb->getTrueSucc();
+    auto* false_succ = bb->getFalseSucc();
 
     if (true_succ != nullptr)
         processSucc(bb, true_succ, live_set);
@@ -107,30 +107,31 @@ LiveSet *LivenessAnalysis::calcInitLiveSets(BasicBlock *bb)
     return live_set;
 }
 
-void LivenessAnalysis::processSucc(BasicBlock *bb, BasicBlock *succ, LiveSet *live_set)
+void LivenessAnalysis::processSucc(BasicBlock* bb, BasicBlock* succ, LiveSet* live_set)
 {
     live_set->unite(live_sets[succ]);
-    for (auto *phi = bb->getFirstPhi(); phi != nullptr; phi = phi->getNext())
+    for (auto* phi = succ->getFirstPhi(); phi != nullptr; phi = phi->getNext())
     {
-        auto &phi_inputs = static_cast<PhiInst *>(phi)->getInputs();
-        for (auto &input : phi_inputs)
-            live_set->addInst(input.first);
+        auto& phi_inputs = static_cast<PhiInst*>(phi)->getInputs();
+        for (auto& input : phi_inputs)
+            if (input.second == bb)
+                live_set->addInst(input.first);
     }
 }
 
-void LivenessAnalysis::appendBBIntervals(LiveSet *live_set, LiveInterval *live_int)
+void LivenessAnalysis::appendBBIntervals(LiveSet* live_set, LiveInterval* live_int)
 {
-    auto &live_insts = live_set->getLiveSet();
+    auto& live_insts = live_set->getLiveSet();
     auto start = live_int->getIntervalStart();
     auto end = live_int->getIntervalEnd();
 
-    for (auto *inst : live_insts)
+    for (auto* inst : live_insts)
         insertInstLiveInterval(inst, start, end);
 }
 
-void LivenessAnalysis::processBBInsts(BasicBlock *bb, LiveSet *live_set)
+void LivenessAnalysis::processBBInsts(BasicBlock* bb, LiveSet* live_set)
 {
-    for (auto *inst = bb->getLastInst(); inst != nullptr; inst = inst->getPrev())
+    for (auto* inst = bb->getLastInst(); inst != nullptr; inst = inst->getPrev())
     {
         auto live_num = inst->getLiveNum();
         insertInstLiveInterval(inst, live_num, live_num + LIVE_NUMBER_STEP);
@@ -146,59 +147,62 @@ void LivenessAnalysis::processBBInsts(BasicBlock *bb, LiveSet *live_set)
         live_set->deleteInst(inst);
     }
 
-    for (auto *phi = bb->getLastPhi(); phi != nullptr; phi = phi->getPrev())
+    for (auto* phi = bb->getLastPhi(); phi != nullptr; phi = phi->getPrev())
         live_set->deleteInst(phi);
 }
 
-void LivenessAnalysis::processInstInputs(Inst *inst, LiveSet *live_set, size_t start)
+void LivenessAnalysis::processInstInputs(Inst* inst, LiveSet* live_set, size_t start)
 {
     switch (inst->getInstType())
     {
-    case InstType::Binary: {
-        auto *bin_inst = static_cast<FixedInputsInst<2> *>(inst);
-        auto num = bin_inst->getLiveNum();
-        processInput(bin_inst->getInput(0), live_set, start, num);
-        processInput(bin_inst->getInput(1), live_set, start, num);
-        break;
-    }
-    case InstType::Unary:
-    case InstType::Cast:
-    case InstType::Mov: {
-        auto *un_inst = static_cast<FixedInputsInst<1> *>(inst);
-        auto num = un_inst->getLiveNum();
-        processInput(un_inst->getInput(0), live_set, start, num);
-        break;
-    }
+        case InstType::Binary:
+        {
+            auto* bin_inst = static_cast<FixedInputsInst<2>*>(inst);
+            auto num = bin_inst->getLiveNum();
+            processInput(bin_inst->getInput(0), live_set, start, num);
+            processInput(bin_inst->getInput(1), live_set, start, num);
+            break;
+        }
+        case InstType::Unary:
+        case InstType::Cast:
+        case InstType::Mov:
+        {
+            auto* un_inst = static_cast<FixedInputsInst<1>*>(inst);
+            auto num = un_inst->getLiveNum();
+            processInput(un_inst->getInput(0), live_set, start, num);
+            break;
+        }
 
-    case InstType::Call: {
-        auto *call_inst = static_cast<CallInst *>(inst);
-        auto num = call_inst->getLiveNum();
-        auto &args = call_inst->getArgs();
-        for (auto *arg : args)
-            processInput(arg, live_set, start, num);
-        break;
-    }
+        case InstType::Call:
+        {
+            auto* call_inst = static_cast<CallInst*>(inst);
+            auto num = call_inst->getLiveNum();
+            auto& args = call_inst->getArgs();
+            for (auto* arg : args)
+                processInput(arg, live_set, start, num);
+            break;
+        }
 
-    default:
-        break;
+        default:
+            break;
     }
 }
 
-void LivenessAnalysis::processInput(Inst *input, LiveSet *live_set, size_t start, size_t live_num)
+void LivenessAnalysis::processInput(Inst* input, LiveSet* live_set, size_t start, size_t live_num)
 {
     live_set->addInst(input);
     insertInstLiveInterval(input, start, live_num);
 }
 
-void LivenessAnalysis::processLoop(BasicBlock *header, LiveSet *live_set)
+void LivenessAnalysis::processLoop(BasicBlock* header, LiveSet* live_set)
 {
-    auto *loop = header->getLoop();
+    auto* loop = header->getLoop();
     auto start = header->getLiveInterval()->getIntervalStart();
-    auto &body = loop->getBody();
+    auto& body = loop->getBody();
     auto end = body[body.size() - 1]->getLiveInterval()->getIntervalEnd();
-    auto &insts = live_set->getLiveSet();
+    auto& insts = live_set->getLiveSet();
 
-    for (auto *inst : insts)
+    for (auto* inst : insts)
         insertInstLiveInterval(inst, start, end);
 }
 

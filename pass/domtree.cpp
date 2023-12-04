@@ -4,11 +4,11 @@
 namespace compiler
 {
 
-auto DomTree::getUnreachedBBs(std::vector<BasicBlock *> &reached)
+auto DomTree::getUnreachedBBs(std::vector<BasicBlock*>& reached)
 {
-    std::vector<BasicBlock *> unreached;
-    for (auto *bb : bbs)
-        if (std::find_if(reached.begin(), reached.end(), [bb](auto *elem) { return bb == elem; }) ==
+    std::vector<BasicBlock*> unreached;
+    for (auto* bb : bbs)
+        if (std::find_if(reached.begin(), reached.end(), [bb](auto* elem) { return bb == elem; }) ==
             reached.end())
         {
             // if bb was not found in reached array -> it is unreached
@@ -27,7 +27,7 @@ bool DomTree::runPassImpl()
     bbs = graph->getRpoBBs();
     assert(bbs.size() > 0 && "empty graph in DomTree");
 
-    for (auto *bb : bbs)
+    for (auto* bb : bbs)
     {
         bb->setMarker(visited);
 
@@ -41,7 +41,7 @@ bool DomTree::runPassImpl()
         bb->resetMarker(visited);
     }
 
-    for (auto *bb : bbs)
+    for (auto* bb : bbs)
         bb->countIdom();
 
     graph->runPassRpo();

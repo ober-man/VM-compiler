@@ -42,7 +42,6 @@ void LoopAnalysis::findLoopsRec(BasicBlock* bb, BasicBlock* prev_bb)
 
         bool is_irreducible = !bb->isDominator(prev_bb);
         loop = new Loop{/*header=*/bb, /*latch=*/prev_bb, is_irreducible};
-        loop->addBlock(bb);
         bb->setLoop(loop);
         return;
     }
@@ -92,6 +91,7 @@ void LoopAnalysis::populateLoops()
                     loop->addBlock(latch);
                     latch->setLoop(loop);
                 }
+            loop->addBlock(bb);
         }
         else
         {
@@ -102,6 +102,7 @@ void LoopAnalysis::populateLoops()
             for (auto latch : latches)
                 fillLoopRec(loop, latch);
 
+            loop->addBlock(bb);
             graph->deleteMarker(gray_mrk);
         }
     }
@@ -126,6 +127,8 @@ void LoopAnalysis::fillLoopRec(Loop* loop, BasicBlock* bb)
             bb_loop->setOuterLoop(loop);
             loop->addInner(bb_loop);
         }
+        if (bb_loop->getHeader() == bb)
+            loop->addBlock(bb);
     }
     else
     {

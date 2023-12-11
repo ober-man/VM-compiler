@@ -193,7 +193,7 @@ TEST(LOOP_TEST, TEST3)
     ASSERT_EQ(loop_8_1->getInnerLoops().size(), 1);
     ASSERT_EQ(loop_8_1->getHeader()->getId(), 1);
     ASSERT_EQ(loop_8_1->getLatches()[0]->getId(), 8);
-    checkLoopBlocks(loop_8_1, {1, 8});
+    checkLoopBlocks(loop_8_1, {1, 2, 8});
 
     auto loop_7_2 = loop_8_1->getInnerLoops()[0];
     ASSERT_EQ(loop_7_2->getOuterLoop(), loop_8_1);
@@ -325,7 +325,7 @@ TEST(LOOP_TEST, TEST5)
     ASSERT_EQ(loop_8_2->getInnerLoops().size(), 2);
     ASSERT_EQ(loop_8_2->getHeader()->getId(), 2);
     ASSERT_EQ(loop_8_2->getLatches()[0]->getId(), 8);
-    checkLoopBlocks(loop_8_2, {2, 7, 8, 11});
+    checkLoopBlocks(loop_8_2, {2, 3, 5, 7, 8, 11});
 
     auto loop_6_5 = loop_8_2->getInnerLoops()[0];
     ASSERT_EQ(loop_6_5->getOuterLoop(), loop_8_2);

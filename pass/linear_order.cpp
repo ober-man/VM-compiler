@@ -36,6 +36,7 @@ void LinearOrder::processBBs()
         else
         {
             bb->setMarker(mrk);
+            swapSuccessors(bb);
             linear_bbs.push_back(bb);
         }
     }
@@ -44,23 +45,64 @@ void LinearOrder::processBBs()
 void LinearOrder::processLoop(Loop* loop)
 {
     auto& body = loop->getBody();
-    for (auto* bb : body)
+    // blocks in loop lying in reversed order
+    for (auto it = body.rbegin(), first = body.rend(); it != first; ++it)
     {
+        auto* bb = *it;
         if (bb->isMarked(mrk))
             continue;
 
         // process inner loops
-        if (bb->isHeader())
+        if (bb->isHeader() && bb->getLoop() != loop)
+            processLoop(bb->getLoop());
+        else
         {
-            Loop* inner_loop = bb->getLoop();
-            if (inner_loop != loop && !inner_loop->isIrreducible())
-            {
-                processLoop(inner_loop);
-                continue;
-            }
+            bb->setMarker(mrk);
+            swapSuccessors(bb);
+            linear_bbs.push_back(bb);
         }
-        bb->setMarker(mrk);
-        linear_bbs.push_back(bb);
+    }
+}
+
+static JumpOpType getInverseJumpType(JumpOpType type)
+{
+    switch (type)
+    {
+      case JumpOpType::Je:
+        return JumpOpType::Jne;
+      case JumpOpType::Jne:
+        return JumpOpType::Je;
+      case JumpOpType::Jb:
+        return JumpOpType::Jae;
+      case JumpOpType::Jbe:
+        return JumpOpType::Ja;
+      case JumpOpType::Ja:
+        return JumpOpType::Jbe;
+      case JumpOpType::Jae:
+        return JumpOpType::Jb;
+      default:
+        return type;
+    }
+}
+
+void LinearOrder::swapSuccessors(BasicBlock* bb)
+{
+    if (linear_bbs.empty())
+        return;
+
+    auto* pred = linear_bbs.back();
+    auto* true_succ = pred->getTrueSucc();
+    if (true_succ != bb)
+        return;
+    
+    pred->swapSuccs();
+    if (pred->size() > 0)
+    {
+        auto* last = pred->getLastInst();
+        if (last->getInstType() != InstType::Jump)
+            return;
+        auto* jump_inst = static_cast<JumpInst*>(last);
+        jump_inst->setJumpOpType(getInverseJumpType(jump_inst->getJumpOpType()));
     }
 }
 

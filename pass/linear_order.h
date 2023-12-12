@@ -24,6 +24,7 @@ class LinearOrder final : public Analysis
   private:
     void processBBs();
     void processLoop(Loop* loop);
+    void swapSuccessors(BasicBlock* bb);
 
   private:
     marker_t mrk;

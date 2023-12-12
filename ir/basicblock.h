@@ -95,6 +95,11 @@ class BasicBlock
         false_succ = bb;
     }
 
+    void swapSuccs()
+    {
+        std::swap(true_succ, false_succ);
+    }
+
     Inst* getFirstInst() const noexcept
     {
         return first_inst;
@@ -112,7 +117,7 @@ class BasicBlock
 
     Inst* getLastPhi() const noexcept
     {
-        return static_cast<Inst*>(last_inst);
+        return static_cast<Inst*>(last_phi);
     }
 
     Inst* getInst(size_t id)

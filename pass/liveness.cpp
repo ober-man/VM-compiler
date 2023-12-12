@@ -62,6 +62,7 @@ void LivenessAnalysis::setInstsInitialNumbers()
             phi->setLiveNum(cur_live_num);
             cur_lin_num += LINEAR_NUMBER_STEP;
         }
+        cur_live_num += LIVE_NUMBER_STEP;
 
         for (auto* inst = bb->getFirstInst(); inst != nullptr; inst = inst->getNext())
         {
@@ -109,6 +110,9 @@ LiveSet* LivenessAnalysis::calcInitLiveSets(BasicBlock* bb)
 
 void LivenessAnalysis::processSucc(BasicBlock* bb, BasicBlock* succ, LiveSet* live_set)
 {
+    if (live_sets.find(succ) == live_sets.end())
+        return;
+
     live_set->unite(live_sets[succ]);
     for (auto* phi = succ->getFirstPhi(); phi != nullptr; phi = phi->getNext())
     {
@@ -134,14 +138,12 @@ void LivenessAnalysis::processBBInsts(BasicBlock* bb, LiveSet* live_set)
     for (auto* inst = bb->getLastInst(); inst != nullptr; inst = inst->getPrev())
     {
         auto live_num = inst->getLiveNum();
-        insertInstLiveInterval(inst, live_num, live_num + LIVE_NUMBER_STEP);
-        /*
+
         auto it = live_intervals.find(inst);
-        auto live_num = inst->getLiveNum();
         if (it == live_intervals.end())
             live_intervals[inst] = new LiveInterval{live_num, live_num + LIVE_NUMBER_STEP};
         else
-            (*it)->setIntervalStart(live_num);*/
+            it->second->setIntervalStart(live_num);
 
         processInstInputs(inst, live_set, bb->getLiveInterval()->getIntervalStart());
         live_set->deleteInst(inst);

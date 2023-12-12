@@ -26,6 +26,11 @@ class Inst
         return inst_type;
     }
 
+    void setInstType(InstType inst_type_) noexcept
+    {
+        inst_type = inst_type_;
+    }
+
     size_t getId() const noexcept
     {
         return id;

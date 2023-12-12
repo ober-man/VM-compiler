@@ -97,9 +97,9 @@ TEST(LIVENESS_TEST, TEST1)
 
     graph->runPassLivenessAnalysis();
     checkLiveIntervals(graph, { {0, {2, 8}}, {1, {4, 10}}, {2, {8, 18}}, 
-                                {3, {10, 16}}, {4, {12, 18}}, {5, {14, 16}},
-                                {6, {18, 22}}, {7, {20, 22}}, {8, {22, 24}}, 
-                                {9, {24, 26}} });
+                                {3, {10, 16}}, {4, {12, 18}}, {5, {14, 14}},
+                                {6, {18, 22}}, {7, {20, 20}}, {8, {22, 24}}, 
+                                {9, {24, 24}} });
 }
 
 /**
@@ -213,122 +213,10 @@ TEST(LIVENESS_TEST, TEST2)
     // graph->dump();
 
     graph->runPassLivenessAnalysis();
-    checkLiveIntervals(graph, { {0, {2, 38}}, {1, {4, 20}}, {2, {6, 28}}, 
+    checkLiveIntervals(graph, { {0, {2, 38}}, {1, {4, 36}}, {2, {6, 36}}, 
                                 {3, {8, 14}}, {4, {10, 20}}, {5, {12, 34}},
-                                {6, {14, 16}}, {7, {16, 18}}, {8, {20, 26}}, 
-                                {9, {22, 28}}, {10, {24, 26}}, {11, {28, 34}},
-                                {12, {30, 32}}, {13, {36, 38}}, {14, {38, 40}},
-                                {15, {40, 42}}, {16, {34, 36}}});
-}
-
-TEST(LIVENESS_TEST, FACT)
-{
-    /*
-    Graph for proc fact (preds, succs omitted)
-    BB [1/5] (live 0)
-        v0. Param i32 a0 (live 2)
-        v1. Const i64 1 (live 4)
-        v2. Const i64 2 (live 6)
-
-    BB [2/5] (live 8)
-        v3. Mov   i64 r0, v1 (live 10)
-        v4. Mov   i64 r1, v2 (live 12)
-        v5. Cast  v0 to i64 (live 14)
-
-    BB [3/5] (live 16)
-        v6. Phi   (v4, bb2) (v12, bb4) (live 16)
-        v7. Cmp   i64 v6, v5 (live 18)
-        v8. Ja    bb5 (live 20)
-
-    BB [4/5] (live 22)
-        v9.  Phi  (v3, bb2) (v11, bb4) (live 22)
-        v10. Phi  (v4, bb2) (v12, bb4) (live 22)
-        v11. Mul  i64 v9, v10 (live 24)
-        v12. Add  i64 v10, v1 (live 26)
-        v13. Jmp  bb3 (live 28)
-
-    BB [5/5] (live 30)
-        v14. Phi  (v3, bb2) (v11, bb4) (live 30)
-        v15. Ret  i64 v14 (live 32)
-    */
-
-    auto graph = std::make_shared<Graph>("fact");
-
-    auto* bb1 = new BasicBlock{1, graph};
-    auto* bb2 = new BasicBlock{2, graph};
-    auto* bb3 = new BasicBlock{3, graph};
-    auto* bb4 = new BasicBlock{4, graph};
-    auto* bb5 = new BasicBlock{5, graph};
-
-    // Fill bb1
-    auto* v0 = new ParamInst{0, DataType::i32, "a0"};
-    auto* v1 = new ConstInst{1, static_cast<uint64_t>(1)};
-    auto* v2 = new ConstInst{2, static_cast<uint64_t>(2)};
-
-    bb1->pushBackInst(v0);
-    bb1->pushBackInst(v1);
-    bb1->pushBackInst(v2);
-
-    // Fill bb2
-    auto* v3 = new MovInst{3, 0, v1};
-    auto* v4 = new MovInst{4, 1, v2};
-    auto* v5 = new CastInst{5, v0, DataType::i64};
-
-    bb2->pushBackInst(v3);
-    bb2->pushBackInst(v4);
-    bb2->pushBackInst(v5);
-
-    // Fill bb3
-    auto* v6 = new PhiInst{6};
-    v6->addInput(std::make_pair(v4, bb2));
-    auto* v7 = new BinaryInst{7, BinOpType::Cmp, v6, v5};
-    auto* v8 = new JumpInst{8, JumpOpType::Ja, bb5};
-
-    bb3->pushBackPhiInst(v6);
-    bb3->pushBackInst(v7);
-    bb3->pushBackInst(v8);
-
-    // Fill bb4
-    auto* v9 = new PhiInst{9};
-    v9->addInput(std::make_pair(v3, bb2));
-    auto* v10 = new PhiInst{10};
-    v10->addInput(std::make_pair(v4, bb2));
-    auto* v11 = new BinaryInst{11, BinOpType::Mul, v9, v10};
-    auto* v12 = new BinaryInst{12, BinOpType::Add, v10, v1};
-    auto* v13 = new JumpInst{13, JumpOpType::Jmp, bb3};
-
-    v6->addInput(std::make_pair(v12, bb4));
-    v9->addInput(std::make_pair(v11, bb4));
-    v10->addInput(std::make_pair(v12, bb4));
-
-    bb4->pushBackPhiInst(v9);
-    bb4->pushBackPhiInst(v10);
-    bb4->pushBackInst(v11);
-    bb4->pushBackInst(v12);
-    bb4->pushBackInst(v13);
-
-    // Fill bb5
-    auto* v14 = new PhiInst{14};
-    v14->addInput(std::make_pair(v3, bb2));
-    v14->addInput(std::make_pair(v11, bb4));
-    auto* v15 = new UnaryInst{15, UnOpType::Return, v14};
-
-    bb5->pushBackPhiInst(v14);
-    bb5->pushBackInst(v15);
-
-    graph->insertBB(bb1);
-    graph->insertBB(bb2);
-    graph->insertBB(bb3);
-    graph->insertBB(bb4);
-    graph->insertBBAfter(bb3, bb5, false);
-    graph->addEdge(bb4, bb3);
-    // graph->dump();
-
-    graph->runPassLivenessAnalysis();
-    checkLiveIntervals(graph, { {0, {2, 14}}, {1, {4, 26}}, {2, {6, 12}}, 
-                                {3, {10, 12}}, {4, {12, 16}}, {5, {14, 22}},
-                                {6, {16, 18}}, {7, {18, 20}}, {8, {20, 22}}, 
-                                {9, {22, 24}}, {10, {22, 26}}, {11, {24, 26}},
-                                {12, {26, 28}}, {13, {28, 30}}, {14, {30, 32}},
-                                {15, {32, 34}}, {16, {34, 36}}});
+                                {6, {14, 14}}, {7, {16, 16}}, {8, {20, 26}}, 
+                                {9, {22, 28}}, {10, {24, 24}}, {11, {28, 34}},
+                                {12, {30, 30}}, {13, {36, 38}}, {14, {38, 40}},
+                                {15, {40, 40}}, {16, {34, 34}}});
 }

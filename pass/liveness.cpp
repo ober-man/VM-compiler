@@ -141,7 +141,7 @@ void LivenessAnalysis::processBBInsts(BasicBlock* bb, LiveSet* live_set)
 
         auto it = live_intervals.find(inst);
         if (it == live_intervals.end())
-            live_intervals[inst] = new LiveInterval{live_num, live_num + LIVE_NUMBER_STEP};
+            live_intervals[inst] = new LiveInterval{live_num, live_num};
         else
             it->second->setIntervalStart(live_num);
 
@@ -201,7 +201,7 @@ void LivenessAnalysis::processLoop(BasicBlock* header, LiveSet* live_set)
     auto* loop = header->getLoop();
     auto start = header->getLiveInterval()->getIntervalStart();
     auto& body = loop->getBody();
-    auto end = body[body.size() - 1]->getLiveInterval()->getIntervalEnd();
+    auto end = body[0]->getLiveInterval()->getIntervalEnd();
     auto& insts = live_set->getLiveSet();
 
     for (auto* inst : insts)

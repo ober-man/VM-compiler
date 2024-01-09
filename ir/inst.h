@@ -1,7 +1,7 @@
 #pragma once
 #include "const.h"
+#include "utils.h"
 
-#include <cassert>
 #include <initializer_list>
 #include <iostream>
 #include <memory>
@@ -24,11 +24,6 @@ class Inst
     InstType getInstType() const
     {
         return inst_type;
-    }
-
-    void setInstType(InstType inst_type_) noexcept
-    {
-        inst_type = inst_type_;
     }
 
     size_t getId() const noexcept
@@ -121,13 +116,13 @@ class FixedInputsInst : public Inst
 
     Inst* getInput(size_t num) const
     {
-        assert(num < N && "too big input number");
+        ASSERT(num < N, "too big input number");
         return inputs[num];
     }
 
     void setInput(Inst* input, size_t num)
     {
-        assert(num < N && "too big input number");
+        ASSERT(num < N, "too big input number");
         inputs[num] = input;
     }
 
@@ -138,7 +133,7 @@ class FixedInputsInst : public Inst
 
     void replaceInput(size_t num, Inst* new_input)
     {
-        assert(num < N && "too big input number");
+        ASSERT(num < N, "too big input number");
         inputs[num] = new_input;
     }
 
@@ -278,31 +273,31 @@ class ConstInst final : public Inst
 
     uint32_t getInt32Value() const
     {
-        assert(data_type == DataType::i32);
+        ASSERT(data_type == DataType::i32);
         return static_cast<uint32_t>(value);
     }
 
     uint64_t getInt64Value() const
     {
-        assert(data_type == DataType::i64);
+        ASSERT(data_type == DataType::i64);
         return value;
     }
 
     uint64_t getIntValue() const
     {
-        assert(data_type == DataType::i32 || data_type == DataType::i64);
+        ASSERT(data_type == DataType::i32 || data_type == DataType::i64);
         return value;
     }
 
     float getFloatValue() const
     {
-        assert(data_type == DataType::f32);
+        ASSERT(data_type == DataType::f32);
         return static_cast<float>(value);
     }
 
     double getDoubleValue() const
     {
-        assert(data_type == DataType::f64);
+        ASSERT(data_type == DataType::f64);
         return static_cast<double>(value);
     }
 
@@ -428,7 +423,7 @@ class CallInst final : public Inst
 
     void setArg(Inst* arg, int num)
     {
-        assert(num < args.size());
+        ASSERT(num < args.size(), "too big arg number");
         args[num] = arg;
     }
 
@@ -567,13 +562,13 @@ class PhiInst : public Inst
 
     void replaceBB(size_t num, BasicBlock* new_bb)
     {
-        assert(num < inputs.size() && "too big input number");
+        ASSERT(num < inputs.size() && "too big input number");
         inputs[num].second = new_bb;
     }
 
     void replaceArg(size_t num, Inst* new_arg)
     {
-        assert(num < inputs.size() && "too big input number");
+        ASSERT(num < inputs.size() && "too big input number");
         inputs[num].first = new_arg;
     }
 

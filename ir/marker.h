@@ -1,5 +1,6 @@
 #pragma once
 
+#include "utils.h"
 #include <bitset>
 
 namespace compiler
@@ -8,8 +9,6 @@ namespace compiler
 #define MARKERS_SHIFT 2
 #define MARKERS_NUM (1 << MARKERS_SHIFT)
 #define POS_MASK (MARKERS_NUM - 1)
-
-#define UNREACHABLE() __builtin_unreachable()
 
 using marker_t = uint32_t;
 

@@ -6,7 +6,7 @@ namespace compiler
 
 bool LinearOrder::runPassImpl()
 {
-    assert(graph != nullptr && "nullptr graph in LoopAnalysis pass");
+    ASSERT(graph != nullptr, "nullptr graph in LoopAnalysis pass");
 
     bool loops = graph->runPassLoopAnalysis();
     if (!loops)
@@ -68,20 +68,20 @@ static JumpOpType getInverseJumpType(JumpOpType type)
 {
     switch (type)
     {
-      case JumpOpType::Je:
-        return JumpOpType::Jne;
-      case JumpOpType::Jne:
-        return JumpOpType::Je;
-      case JumpOpType::Jb:
-        return JumpOpType::Jae;
-      case JumpOpType::Jbe:
-        return JumpOpType::Ja;
-      case JumpOpType::Ja:
-        return JumpOpType::Jbe;
-      case JumpOpType::Jae:
-        return JumpOpType::Jb;
-      default:
-        return type;
+        case JumpOpType::Je:
+            return JumpOpType::Jne;
+        case JumpOpType::Jne:
+            return JumpOpType::Je;
+        case JumpOpType::Jb:
+            return JumpOpType::Jae;
+        case JumpOpType::Jbe:
+            return JumpOpType::Ja;
+        case JumpOpType::Ja:
+            return JumpOpType::Jbe;
+        case JumpOpType::Jae:
+            return JumpOpType::Jb;
+        default:
+            return type;
     }
 }
 
@@ -94,7 +94,7 @@ void LinearOrder::swapSuccessors(BasicBlock* bb)
     auto* true_succ = pred->getTrueSucc();
     if (true_succ != bb)
         return;
-    
+
     pred->swapSuccs();
     if (pred->size() > 0)
     {

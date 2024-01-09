@@ -4,7 +4,6 @@
 #include "inst.h"
 #include "pass/passmanager.h"
 #include <algorithm>
-#include <cassert>
 #include <iostream>
 #include <memory>
 #include <unordered_map>
@@ -128,14 +127,14 @@ class Graph
     void removeBB(BasicBlock* bb)
     {
         auto it = BBs.erase(std::find(BBs.begin(), BBs.end(), bb));
-        assert(it != BBs.end() && "remove not existing bb");
+        ASSERT(it != BBs.end(), "remove not existing bb");
     }
 
     void removeBB(size_t num)
     {
         auto it = BBs.erase(
             std::find_if(BBs.begin(), BBs.end(), [num](auto bb) { return bb->getId() == num; }));
-        assert(it != BBs.end() && "remove not existing bb");
+        ASSERT(it != BBs.end(), "remove not existing bb");
     }
 
     void insertBB(BasicBlock* bb);

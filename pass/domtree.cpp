@@ -20,12 +20,12 @@ auto DomTree::getUnreachedBBs(std::vector<BasicBlock*>& reached)
 
 bool DomTree::runPassImpl()
 {
-    assert(graph != nullptr && "nullptr graph in domtree pass");
+    ASSERT(graph != nullptr, "nullptr graph in domtree pass");
 
     marker_t visited = graph->getNewMarker();
     graph->runPassRpo();
     bbs = graph->getRpoBBs();
-    assert(bbs.size() > 0 && "empty graph in DomTree");
+    ASSERT(bbs.size() > 0, "empty graph in DomTree");
 
     for (auto* bb : bbs)
     {

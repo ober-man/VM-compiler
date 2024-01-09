@@ -7,7 +7,7 @@ namespace compiler
 
 bool LoopAnalysis::runPassImpl()
 {
-    assert(graph != nullptr && "nullptr graph in LoopAnalysis pass");
+    ASSERT(graph != nullptr, "nullptr graph in LoopAnalysis pass");
 
     bool rpo = graph->runPassRpo();
     bool domtree = graph->runPassDomTree();

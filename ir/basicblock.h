@@ -162,8 +162,8 @@ class BasicBlock
 
     void pushBackInst(Inst* inst)
     {
-        assert(inst->getInstType() != InstType::Phi);
-        assert(!inst->getPrev() && "inserted inst has predecessor");
+        ASSERT(inst->getInstType() != InstType::Phi);
+        ASSERT(!inst->getPrev(), "inserted inst has predecessor");
 
         if (first_inst == nullptr)
             first_inst = inst;
@@ -180,8 +180,8 @@ class BasicBlock
 
     void pushBackPhiInst(PhiInst* inst)
     {
-        assert(inst->getInstType() == InstType::Phi);
-        assert(!inst->getPrev() && "inserted inst has predecessor");
+        ASSERT(inst->getInstType() == InstType::Phi);
+        ASSERT(!inst->getPrev(), "inserted inst has predecessor");
 
         if (first_phi == nullptr)
             first_phi = inst;
@@ -198,8 +198,8 @@ class BasicBlock
 
     void pushFrontInst(Inst* inst)
     {
-        assert(inst->getInstType() != InstType::Phi);
-        assert(!inst->getNext() && "inserted inst has successor");
+        ASSERT(inst->getInstType() != InstType::Phi);
+        ASSERT(!inst->getNext(), "inserted inst has successor");
 
         if (!last_inst)
             last_inst = inst;
@@ -216,8 +216,8 @@ class BasicBlock
 
     void pushFrontPhiInst(PhiInst* inst)
     {
-        assert(inst->getInstType() == InstType::Phi);
-        assert(!inst->getNext() && "inserted inst has successor");
+        ASSERT(inst->getInstType() == InstType::Phi);
+        ASSERT(!inst->getNext(), "inserted inst has successor");
 
         if (!last_phi)
             last_phi = inst;
@@ -237,8 +237,8 @@ class BasicBlock
      */
     void insertAfter(Inst* prev_inst, Inst* inst)
     {
-        assert(!inst->getPrev() && "inserted inst has predecessor");
-        assert(!inst->getNext() && "inserted inst has successor");
+        ASSERT(!inst->getPrev(), "inserted inst has predecessor");
+        ASSERT(!inst->getNext(), "inserted inst has successor");
 
         if (!prev_inst->getNext())
         {
@@ -258,7 +258,7 @@ class BasicBlock
 
     void popFrontInst()
     {
-        assert(first_inst && "first inst not existed");
+        ASSERT(first_inst, "first inst not existed");
         auto second_inst = first_inst->getNext();
         second_inst->setPrev(nullptr);
         first_inst->setNext(nullptr);
@@ -268,7 +268,7 @@ class BasicBlock
 
     void popBackInst()
     {
-        assert(last_inst && "last inst not existed");
+        ASSERT(last_inst, "last inst not existed");
         auto prev_inst = last_inst->getPrev();
         prev_inst->setNext(nullptr);
         last_inst->setPrev(nullptr);
@@ -289,7 +289,7 @@ class BasicBlock
 
     void addPred(BasicBlock* bb)
     {
-        assert(std::find(preds.begin(), preds.end(), bb) == preds.end() && "pred already existed");
+        ASSERT(std::find(preds.begin(), preds.end(), bb) == preds.end(), "pred already existed");
         preds.push_back(bb);
     }
 

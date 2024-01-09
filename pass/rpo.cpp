@@ -13,7 +13,7 @@ Rpo::Rpo(Graph* g, marker_t marker) : Analysis(g), visited(marker)
 
 void Rpo::visitBasicBlock(BasicBlock* bb)
 {
-    assert(bb != nullptr && "nullptr bb in RPO pass");
+    ASSERT(bb != nullptr, "nullptr bb in RPO pass");
     if (bb->isMarked(visited))
         return;
 
@@ -33,13 +33,13 @@ void Rpo::visitBasicBlock(BasicBlock* bb)
 
 bool Rpo::runPassImpl()
 {
-    assert(graph != nullptr && "nullptr graph in RPO pass");
+    ASSERT(graph != nullptr, "nullptr graph in RPO pass");
 
     if (visited == NO_MARKER)
         visited = graph->getNewMarker();
 
     auto bbs = graph->getBBs();
-    assert(bbs.size() > 0 && "empty graph in RPO");
+    ASSERT(bbs.size() > 0, "empty graph in RPO");
 
     auto first_BB = bbs[0];
 

@@ -21,14 +21,14 @@ BasicBlock::~BasicBlock()
 
 void BasicBlock::setId(size_t id_) noexcept
 {
-    assert(graph && !graph->getBB(id_) && "BB id already existed");
+    ASSERT(graph && !graph->getBB(id_), "BB id already existed");
     id = id_;
 }
 
 void BasicBlock::replacePred(BasicBlock* pred, BasicBlock* bb)
 {
     auto it = std::find(preds.begin(), preds.end(), pred);
-    assert(it != preds.end() && "replace not existing pred");
+    ASSERT(it != preds.end(), "replace not existing pred");
     preds[(*it)->getId()] = bb;
 }
 
@@ -36,7 +36,7 @@ void BasicBlock::replacePred(size_t num, BasicBlock* bb)
 {
     auto it =
         std::find_if(preds.begin(), preds.end(), [num](auto pred) { return pred->getId() == num; });
-    assert(it != preds.end() && "replace not existing pred");
+    ASSERT(it != preds.end(), "replace not existing pred");
     preds[num] = bb;
 }
 

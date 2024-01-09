@@ -4,7 +4,7 @@
 
 using namespace compiler;
 
-void checkLiveIntervals(std::shared_ptr<Graph> g, 
+void checkLiveIntervals(std::shared_ptr<Graph> g,
                         std::unordered_map<uint32_t, std::pair<uint32_t, uint32_t>> expected)
 {
     auto& live_intervals = g->getLiveIntervals();
@@ -31,8 +31,6 @@ void checkLiveIntervals(std::shared_ptr<Graph> g,
  *             |         |
  *             v         v
  *            [3]------>[4]
- * 
- * 
  */
 TEST(LIVENESS_TEST, TEST1)
 {
@@ -96,10 +94,16 @@ TEST(LIVENESS_TEST, TEST1)
     bb4->pushBackInst(v9);
 
     graph->runPassLivenessAnalysis();
-    checkLiveIntervals(graph, { {0, {2, 8}}, {1, {4, 10}}, {2, {8, 18}}, 
-                                {3, {10, 16}}, {4, {12, 18}}, {5, {14, 14}},
-                                {6, {18, 22}}, {7, {20, 20}}, {8, {22, 24}}, 
-                                {9, {24, 24}} });
+    checkLiveIntervals(graph, {{0, {2, 8}},
+                               {1, {4, 10}},
+                               {2, {8, 18}},
+                               {3, {10, 16}},
+                               {4, {12, 18}},
+                               {5, {14, 14}},
+                               {6, {18, 22}},
+                               {7, {20, 20}},
+                               {8, {22, 24}},
+                               {9, {24, 24}}});
 }
 
 /**
@@ -213,10 +217,21 @@ TEST(LIVENESS_TEST, TEST2)
     // graph->dump();
 
     graph->runPassLivenessAnalysis();
-    checkLiveIntervals(graph, { {0, {2, 38}}, {1, {4, 36}}, {2, {6, 36}}, 
-                                {3, {8, 14}}, {4, {10, 20}}, {5, {12, 34}},
-                                {6, {14, 14}}, {7, {16, 16}}, {8, {20, 26}}, 
-                                {9, {22, 28}}, {10, {24, 24}}, {11, {28, 34}},
-                                {12, {30, 30}}, {13, {36, 38}}, {14, {38, 40}},
-                                {15, {40, 40}}, {16, {34, 34}}});
+    checkLiveIntervals(graph, {{0, {2, 38}},
+                               {1, {4, 36}},
+                               {2, {6, 36}},
+                               {3, {8, 14}},
+                               {4, {10, 20}},
+                               {5, {12, 34}},
+                               {6, {14, 14}},
+                               {7, {16, 16}},
+                               {8, {20, 26}},
+                               {9, {22, 28}},
+                               {10, {24, 24}},
+                               {11, {28, 34}},
+                               {12, {30, 30}},
+                               {13, {36, 38}},
+                               {14, {38, 40}},
+                               {15, {40, 40}},
+                               {16, {34, 34}}});
 }

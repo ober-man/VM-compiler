@@ -6,9 +6,9 @@ namespace compiler
 
 bool LinearOrder::runPassImpl()
 {
-    ASSERT(graph != nullptr, "nullptr graph in LoopAnalysis pass");
+    ASSERT(graph != nullptr, "nullptr graph in LinearOrder pass");
 
-    bool loops = graph->runPassLoopAnalysis();
+    bool loops = graph->runPass<LoopAnalysis>();
     if (!loops)
         return false;
 

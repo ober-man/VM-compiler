@@ -12,8 +12,8 @@ void checkLiveIntervals(std::shared_ptr<Graph> g,
     {
         uint32_t id = inst->getId();
         auto elem = expected[id];
-        ASSERT_EQ(interval->getIntervalStart(), expected[id].first);
-        ASSERT_EQ(interval->getIntervalEnd(), expected[id].second);
+        ASSERT_EQ(interval->getIntervalStart(), elem.first);
+        ASSERT_EQ(interval->getIntervalEnd(), elem.second);
         /*
         std::cout << "Inst " << inst->getLiveNum() << "(" << inst->getLinearNum() << ") ";
         std::cout << inst->getId() << " ";
@@ -93,7 +93,7 @@ TEST(LIVENESS_TEST, TEST1)
     bb4->pushBackPhiInst(v8);
     bb4->pushBackInst(v9);
 
-    graph->runPassLivenessAnalysis();
+    graph->runPass<LivenessAnalysis>();
     checkLiveIntervals(graph, {{0, {2, 8}},
                                {1, {4, 10}},
                                {2, {8, 18}},
@@ -216,7 +216,7 @@ TEST(LIVENESS_TEST, TEST2)
     v3->addInput(std::make_pair(v15, bb6));
     // graph->dump();
 
-    graph->runPassLivenessAnalysis();
+    graph->runPass<LivenessAnalysis>();
     checkLiveIntervals(graph, {{0, {2, 38}},
                                {1, {4, 36}},
                                {2, {6, 36}},

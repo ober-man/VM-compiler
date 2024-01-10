@@ -152,14 +152,12 @@ class Graph
         std::for_each(BBs.begin(), BBs.end(), [&out](auto bb) { bb->dump(out); });
     }
 
-    // template <typename PassName, typename... Args>
-    // TODO: fix PassManager
-    // [some template magic was broken and there is a crutch]
-    bool runPassRpo(marker_t marker = 0);
-    bool runPassDomTree();
-    bool runPassLoopAnalysis();
-    bool runPassLinearOrder();
-    bool runPassLivenessAnalysis();
+    template <LegalPass PassName, typename... Args>
+    bool runPass(Args&&... args)
+    {
+        ASSERT(pm != nullptr);
+        return pm->runPass<PassName>(std::forward<Args>(args)...);
+    }
 
   private:
     std::string func_name = "";
@@ -175,13 +173,5 @@ class Graph
 
     std::unordered_map<Inst*, LiveInterval*> live_intervals;
 };
-
-/*
-template <typename PassName>
-void Graph::runPass()
-{
-    pm->template runPass<PassName>();
-}
-*/
 
 } // namespace compiler

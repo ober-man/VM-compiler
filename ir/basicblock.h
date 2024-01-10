@@ -1,6 +1,5 @@
 #pragma once
 
-#include "graph.h"
 #include "inst.h"
 #include "marker.h"
 
@@ -18,9 +17,8 @@ class BasicBlock
 {
   public:
     BasicBlock(size_t id_, std::shared_ptr<Graph> graph_ = nullptr, std::string name_ = "")
-        : id(id_), graph(graph_), name(name_)
+        : id(id_), bb_size(0), name(name_), graph(graph_)
     {
-        bb_size = 0;
         preds.reserve(BB_PREDS_NUM);
         dominators.reserve(BB_DOMINATED_NUM);
         markers = std::make_unique<MarkerSet>();

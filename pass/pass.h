@@ -1,7 +1,5 @@
 #pragma once
 
-#include "ir/graph.h"
-
 namespace compiler
 {
 
@@ -50,7 +48,7 @@ class Analysis : public Pass
 
     // some passes can invalidate analysis
     // to fix it rerun runImpl()
-    virtual void invalidateAnalysis() noexcept
+    virtual void invalidateAnalysis()
     {
         is_valid = false;
     }

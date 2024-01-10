@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ir/graph.h"
 #include "pass.h"
 
 namespace compiler
@@ -11,7 +12,7 @@ namespace compiler
 class Rpo final : public Analysis
 {
   public:
-    Rpo(Graph* g, marker_t marker);
+    Rpo(Graph* g, marker_t marker = NO_MARKER);
     ~Rpo() override = default;
 
     bool runPassImpl() override;
@@ -21,7 +22,7 @@ class Rpo final : public Analysis
         return "RPO";
     }
 
-    virtual void invalidateAnalysis() noexcept override
+    virtual void invalidateAnalysis() override
     {
         graph->getRpoBBs().clear();
         is_valid = false;

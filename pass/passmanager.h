@@ -2,6 +2,7 @@
 
 #include "ir/marker.h"
 #include "pass.h"
+#include <concepts>
 #include <iostream>
 #include <vector>
 
@@ -17,7 +18,17 @@ class LinearOrder;
 class LivenessAnalysis;
 class Graph;
 
-#define NO_MARKER 1000
+template <typename T>
+concept LegalAnalysis =
+    std::is_same_v<T, Rpo> || std::is_same_v<T, DomTree> || std::is_same_v<T, LoopAnalysis> ||
+    std::is_same_v<T, LinearOrder> || std::is_same_v<T, LivenessAnalysis>;
+
+// at this moment there is no available optimizations
+template <typename T>
+concept LegalOptimization = false;
+
+template <typename T>
+concept LegalPass = LegalAnalysis<T> || LegalOptimization<T>;
 
 class PassManager final
 {
@@ -26,14 +37,33 @@ class PassManager final
     {}
     ~PassManager();
 
-    // template <typename PassName>
-    // TODO: fix PassManager
-    // [some template magic was broken and there is a crutch]
-    bool runPassRpo(marker_t marker = NO_MARKER);
-    bool runPassDomTree();
-    bool runPassLoopAnalysis();
-    bool runPassLinearOrder();
-    bool runPassLivenessAnalysis();
+    template <LegalPass PassName, typename... Args>
+    bool runPass(Args&&... args)
+    {
+        auto* pass = new PassName{graph, std::forward<Args>(args)...};
+        [[maybe_unused]] std::string pass_name;
+        if constexpr (LegalAnalysis<PassName>)
+        {
+            analyses.push_back(static_cast<Analysis*>(pass));
+            pass_name = pass->getAnalysisName();
+        }
+        else if constexpr (LegalOptimization<PassName>)
+        {
+            opts.push_back(static_cast<Optimization*>(pass));
+            pass_name = pass->getOptName();
+        }
+        else
+        {
+            UNREACHABLE();
+        }
+
+        if (!pass->runPassImpl())
+        {
+            std::cerr << "Pass " << pass_name << " failed" << std::endl;
+            return false;
+        }
+        return true;
+    }
 
     Graph* getGraph() const noexcept
     {

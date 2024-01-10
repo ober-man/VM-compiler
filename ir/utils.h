@@ -33,7 +33,9 @@ namespace compiler
     std::abort();
 
 #define UNREACHABLE()                                                                              \
-    ASSERT_PRINT("This line should be unreachable");                                               \
-    __builtin_unreachable();
-
+    do                                                                                             \
+    {                                                                                              \
+        ASSERT_PRINT("This line should be unreachable");                                           \
+        __builtin_unreachable();                                                                   \
+    } while (0)
 } // namespace compiler

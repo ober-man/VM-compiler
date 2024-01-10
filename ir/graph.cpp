@@ -18,32 +18,6 @@ Graph::~Graph()
         delete live_int;
 }
 
-// template <typename PassName, typename... Args>
-bool Graph::runPassRpo(marker_t marker)
-{
-    return pm->runPassRpo(marker);
-}
-
-bool Graph::runPassDomTree()
-{
-    return pm->runPassDomTree();
-}
-
-bool Graph::runPassLoopAnalysis()
-{
-    return pm->runPassLoopAnalysis();
-}
-
-bool Graph::runPassLinearOrder()
-{
-    return pm->runPassLinearOrder();
-}
-
-bool Graph::runPassLivenessAnalysis()
-{
-    return pm->runPassLivenessAnalysis();
-}
-
 marker_t Graph::getNewMarker()
 {
     return mm->getNewMarker();

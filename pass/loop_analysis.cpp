@@ -9,8 +9,8 @@ bool LoopAnalysis::runPassImpl()
 {
     ASSERT(graph != nullptr, "nullptr graph in LoopAnalysis pass");
 
-    bool rpo = graph->runPassRpo();
-    bool domtree = graph->runPassDomTree();
+    bool rpo = graph->runPass<Rpo>();
+    bool domtree = graph->runPass<DomTree>();
     if (!rpo || !domtree)
         return false;
 

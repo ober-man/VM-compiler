@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ir/graph.h"
 #include "pass.h"
 
 namespace compiler

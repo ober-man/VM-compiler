@@ -55,7 +55,7 @@ TEST(DOMTREE_TEST, TEST1)
     graph->addEdge(bb3, bb6);
     // graph->dump();
 
-    graph->runPassDomTree();
+    graph->runPass<DomTree>();
 
     auto& bbs = graph->getRpoBBs();
     ASSERT_EQ(bbs.size(), 6);
@@ -109,7 +109,7 @@ TEST(DOMTREE_TEST, TEST2)
     graph->addEdge(bb6, bb2);
     // graph->dump();
 
-    graph->runPassDomTree();
+    graph->runPass<DomTree>();
 
     auto& bbs = graph->getRpoBBs();
     ASSERT_EQ(bbs.size(), 6);
@@ -180,7 +180,7 @@ TEST(DOMTREE_TEST, TEST3)
     graph->addEdge(bb6, bb9);
     // graph->dump();
 
-    graph->runPassDomTree();
+    graph->runPass<DomTree>();
 
     auto& bbs = graph->getRpoBBs();
     ASSERT_EQ(bbs.size(), 9);
@@ -242,7 +242,7 @@ TEST(DOMTREE_TEST, TEST4)
     graph->addEdge(bb7, bb4);
     // graph->dump();
 
-    graph->runPassDomTree();
+    graph->runPass<DomTree>();
 
     auto& bbs = graph->getRpoBBs();
     ASSERT_EQ(bbs.size(), 7);
@@ -322,7 +322,7 @@ TEST(DOMTREE_TEST, TEST5)
     graph->addEdge(bb11, bb3);
     // graph->dump();
 
-    graph->runPassDomTree();
+    graph->runPass<DomTree>();
 
     auto& bbs = graph->getRpoBBs();
     ASSERT_EQ(bbs.size(), 11);
@@ -403,7 +403,7 @@ TEST(DOMTREE_TEST, TEST6)
     graph->addEdge(bb8, bb7);
     // graph->dump();
 
-    graph->runPassDomTree();
+    graph->runPass<DomTree>();
 
     auto& bbs = graph->getRpoBBs();
     ASSERT_EQ(bbs.size(), 9);

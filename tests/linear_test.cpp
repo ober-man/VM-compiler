@@ -49,7 +49,7 @@ TEST(LINEAR_TEST, TEST1)
     graph->addEdge(bb3, bb6);
     // graph->dump();
 
-    graph->runPassLinearOrder();
+    graph->runPass<LinearOrder>();
 
     auto& lin_BBs = graph->getLinearOrderBBs();
     checkLinearOrder(lin_BBs, {1, 2, 4, 5, 3, 6});
@@ -89,7 +89,7 @@ TEST(LINEAR_TEST, TEST2)
     graph->addEdge(bb6, bb2);
     // graph->dump();
 
-    graph->runPassLinearOrder();
+    graph->runPass<LinearOrder>();
 
     auto& lin_BBs = graph->getLinearOrderBBs();
     checkLinearOrder(lin_BBs, {1, 2, 3, 4, 6, 5});
@@ -146,7 +146,7 @@ TEST(LINEAR_TEST, TEST3)
     graph->addEdge(bb6, bb9);
     // graph->dump();
 
-    graph->runPassLinearOrder();
+    graph->runPass<LinearOrder>();
 
     auto& lin_BBs = graph->getLinearOrderBBs();
     checkLinearOrder(lin_BBs, {1, 2, 4, 3, 5, 7, 8, 6, 9});
@@ -188,7 +188,7 @@ TEST(LINEAR_TEST, TEST4)
     graph->addEdge(bb7, bb4);
     // graph->dump();
 
-    graph->runPassLinearOrder();
+    graph->runPass<LinearOrder>();
 
     auto& lin_BBs = graph->getLinearOrderBBs();
     checkLinearOrder(lin_BBs, {1, 2, 6, 7, 5, 3, 4});
@@ -252,7 +252,7 @@ TEST(LINEAR_TEST, TEST5)
     graph->addEdge(bb11, bb3);
     // graph->dump();
 
-    graph->runPassLinearOrder();
+    graph->runPass<LinearOrder>();
 
     auto& lin_BBs = graph->getLinearOrderBBs();
     checkLinearOrder(lin_BBs, {1, 2, 11, 3, 4, 5, 6, 7, 8, 9, 10});
@@ -308,7 +308,7 @@ TEST(LINEAR_TEST, TEST6)
     graph->addEdge(bb7, bb3);
     // graph->dump();
 
-    graph->runPassLinearOrder();
+    graph->runPass<LinearOrder>();
 
     auto& lin_BBs = graph->getLinearOrderBBs();
     checkLinearOrder(lin_BBs, {1, 2, 5, 6, 8, 3, 4, 7, 9});

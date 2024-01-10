@@ -16,9 +16,9 @@ LivenessAnalysis::~LivenessAnalysis()
 
 bool LivenessAnalysis::runPassImpl()
 {
-    ASSERT(graph != nullptr, "nullptr graph in LoopAnalysis pass");
+    ASSERT(graph != nullptr, "nullptr graph in LivenessAnalysis pass");
 
-    bool linear = graph->runPassLinearOrder();
+    bool linear = graph->runPass<LinearOrder>();
     if (!linear)
         return false;
 

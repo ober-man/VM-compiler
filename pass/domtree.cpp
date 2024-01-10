@@ -4,6 +4,12 @@
 namespace compiler
 {
 
+void DomTree::invalidateAnalysis()
+{
+    for (auto* bb : bbs)
+        bb->getDominators().clear();
+}
+
 auto DomTree::getUnreachedBBs(std::vector<BasicBlock*>& reached)
 {
     std::vector<BasicBlock*> unreached;
@@ -23,7 +29,7 @@ bool DomTree::runPassImpl()
     ASSERT(graph != nullptr, "nullptr graph in domtree pass");
 
     marker_t visited = graph->getNewMarker();
-    graph->runPassRpo();
+    graph->runPass<Rpo>();
     bbs = graph->getRpoBBs();
     ASSERT(bbs.size() > 0, "empty graph in DomTree");
 
@@ -31,7 +37,7 @@ bool DomTree::runPassImpl()
     {
         bb->setMarker(visited);
 
-        graph->runPassRpo(visited);
+        graph->runPass<Rpo>(visited);
         auto reached_bbs = graph->getRpoBBs();
         auto unreached_bbs = getUnreachedBBs(reached_bbs);
 
@@ -44,7 +50,7 @@ bool DomTree::runPassImpl()
     for (auto* bb : bbs)
         bb->countIdom();
 
-    graph->runPassRpo();
+    graph->runPass<Rpo>();
     graph->deleteMarker(visited);
     return true;
 }

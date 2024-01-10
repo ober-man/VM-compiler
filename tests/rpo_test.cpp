@@ -41,7 +41,7 @@ TEST(RPO_TEST, TEST1)
     graph->addEdge(bb3, bb6);
     // graph->dump();
 
-    graph->runPassRpo();
+    graph->runPass<Rpo>();
 
     auto& bbs = graph->getRpoBBs();
 
@@ -88,7 +88,7 @@ TEST(RPO_TEST, TEST2)
     graph->addEdge(bb6, bb2);
     // graph->dump();
 
-    graph->runPassRpo();
+    graph->runPass<Rpo>();
 
     auto& bbs = graph->getRpoBBs();
 
@@ -152,7 +152,7 @@ TEST(RPO_TEST, TEST3)
     graph->addEdge(bb6, bb9);
     // graph->dump();
 
-    graph->runPassRpo();
+    graph->runPass<Rpo>();
 
     auto& bbs = graph->getRpoBBs();
 
@@ -204,7 +204,7 @@ TEST(RPO_TEST, TEST4)
     graph->addEdge(bb7, bb4);
     // graph->dump();
 
-    graph->runPassRpo();
+    graph->runPass<Rpo>();
 
     auto& bbs = graph->getRpoBBs();
 
@@ -276,7 +276,7 @@ TEST(RPO_TEST, TEST5)
     graph->addEdge(bb11, bb3);
     // graph->dump();
 
-    graph->runPassRpo();
+    graph->runPass<Rpo>();
 
     auto& bbs = graph->getRpoBBs();
 
@@ -344,7 +344,7 @@ TEST(RPO_TEST, TEST6)
     graph->addEdge(bb7, bb3);
     // graph->dump();
 
-    graph->runPassRpo();
+    graph->runPass<Rpo>();
 
     auto& bbs = graph->getRpoBBs();
 

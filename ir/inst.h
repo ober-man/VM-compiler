@@ -421,7 +421,7 @@ class CallInst final : public Inst
         return args;
     }
 
-    void setArg(Inst* arg, int num)
+    void setArg(Inst* arg, size_t num)
     {
         ASSERT(num < args.size(), "too big arg number");
         args[num] = arg;
@@ -509,7 +509,7 @@ class MovInst final : public FixedInputsInst<1>
 
     void setRegNum(size_t reg) noexcept
     {
-        reg = reg_num;
+        reg_num = reg;
     }
 
     DataType getType() const noexcept override

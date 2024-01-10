@@ -1,9 +1,12 @@
 #pragma once
 
+#include "ir/graph.h"
 #include "pass/pass.h"
 
 namespace compiler
 {
+
+class BasicBlock;
 
 class DomTree final : public Analysis
 {
@@ -19,11 +22,7 @@ class DomTree final : public Analysis
         return "DomTree";
     }
 
-    void invalidateAnalysis() noexcept override
-    {
-        for (auto* bb : bbs)
-            bb->getDominators().clear();
-    }
+    void invalidateAnalysis() override;
 
   private:
     auto getUnreachedBBs(std::vector<BasicBlock*>& reached);

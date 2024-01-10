@@ -26,8 +26,6 @@ marker_t Graph::getNewMarker()
 void Graph::deleteMarker(marker_t marker)
 {
     mm->deleteMarker(marker);
-    for (auto bb : BBs)
-        bb->resetMarker(marker);
 }
 
 void Graph::insertBB(BasicBlock* bb)

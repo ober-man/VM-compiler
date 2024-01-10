@@ -1,18 +1,20 @@
 #pragma once
 
 #include "utils.h"
+#include <array>
 #include <bitset>
 
 namespace compiler
 {
 
-#define MARKERS_SHIFT 2
-#define MARKERS_NUM (1 << MARKERS_SHIFT)
-#define POS_MASK (MARKERS_NUM - 1)
+constexpr uint32_t MARKERS_SHIFT = 2;
+constexpr uint32_t MARKERS_NUM = (1 << MARKERS_SHIFT);
+constexpr uint32_t POS_MASK = (MARKERS_NUM - 1);
+constexpr uint32_t EMPTY_MARKER = 0;
 
 using marker_t = uint32_t;
 
-class MarkerManager
+class MarkerManager final
 {
   public:
     MarkerManager() = default;
@@ -20,11 +22,12 @@ class MarkerManager
 
     marker_t getNewMarker()
     {
+        ++current;
         for (uint32_t i = 0; i < MARKERS_NUM; ++i)
             if (!available_mrks[i])
             {
                 available_mrks[i] = true;
-                return i;
+                return (current << MARKERS_SHIFT) | i;
             }
         UNREACHABLE();
     }
@@ -36,10 +39,11 @@ class MarkerManager
     }
 
   private:
+    uint32_t current = 0;
     std::bitset<MARKERS_NUM> available_mrks;
 };
 
-class MarkerSet
+class MarkerSet final
 {
   public:
     MarkerSet() = default;
@@ -48,22 +52,25 @@ class MarkerSet
     void setMarker(marker_t marker)
     {
         uint32_t pos = marker & POS_MASK;
-        markers[pos] = true;
+        uint32_t val = marker >> MARKERS_SHIFT;
+        markers[pos] = val;
     }
 
     void resetMarker(marker_t marker)
     {
         uint32_t pos = marker & POS_MASK;
-        markers[pos] = false;
+        markers[pos] = EMPTY_MARKER;
     }
 
     bool isMarked(marker_t marker) const
     {
-        return markers[marker & POS_MASK];
+        uint32_t pos = marker & POS_MASK;
+        uint32_t val = marker >> MARKERS_SHIFT;
+        return markers[pos] == val;
     }
 
   private:
-    std::bitset<MARKERS_NUM> markers;
+    std::array<marker_t, MARKERS_NUM> markers;
 };
 
 } // namespace compiler

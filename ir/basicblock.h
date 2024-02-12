@@ -26,28 +26,6 @@ class BasicBlock
 
     ~BasicBlock();
 
-    size_t getId() const noexcept
-    {
-        return id;
-    }
-
-    void incrId() noexcept
-    {
-        ++id;
-    }
-
-    void setId(size_t id_) noexcept;
-
-    std::string getName() const noexcept
-    {
-        return name;
-    }
-
-    void setName(std::string name_) noexcept
-    {
-        name = name_;
-    }
-
     size_t size() const noexcept
     {
         return bb_size;
@@ -58,54 +36,22 @@ class BasicBlock
         return bb_size == 0;
     }
 
-    std::shared_ptr<Graph> getGraph() const noexcept
-    {
-        return graph;
-    }
-
-    void setGraph(std::shared_ptr<Graph> graph_) noexcept
-    {
-        graph = graph_;
-    }
-
-    std::vector<BasicBlock*>& getPreds() noexcept
-    {
-        return preds;
-    }
-
-    BasicBlock* getTrueSucc() const noexcept
-    {
-        return true_succ;
-    }
-
-    BasicBlock* getFalseSucc() const noexcept
-    {
-        return false_succ;
-    }
-
-    void setTrueSucc(BasicBlock* bb) noexcept
-    {
-        true_succ = bb;
-    }
-
-    void setFalseSucc(BasicBlock* bb) noexcept
-    {
-        false_succ = bb;
-    }
+    DEFINE_GETTER_SETTER(name, Name, std::string)
+    DEFINE_GETTER_SETTER(id, Id, size_t)
+    DEFINE_GETTER_SETTER(graph, Graph, std::shared_ptr<Graph>)
+    DEFINE_ARRAY_GETTER(preds, Preds, std::vector<BasicBlock*>&)
+    DEFINE_GETTER_SETTER(true_succ, TrueSucc, BasicBlock*)
+    DEFINE_GETTER_SETTER(false_succ, FalseSucc, BasicBlock*)
+    DEFINE_GETTER_SETTER(first_inst, FirstInst, Inst*)
+    DEFINE_GETTER_SETTER(last_inst, LastInst, Inst*)
+    DEFINE_ARRAY_GETTER(dominators, Dominators, std::vector<BasicBlock*>&)
+    DEFINE_GETTER(idom, Idom, BasicBlock*)
+    DEFINE_GETTER_SETTER(loop, Loop, Loop*)
+    DEFINE_GETTER_SETTER(live_int, LiveInterval, LiveInterval*)
 
     void swapSuccs()
     {
         std::swap(true_succ, false_succ);
-    }
-
-    Inst* getFirstInst() const noexcept
-    {
-        return first_inst;
-    }
-
-    Inst* getLastInst() const noexcept
-    {
-        return last_inst;
     }
 
     Inst* getFirstPhi() const noexcept
@@ -126,37 +72,7 @@ class BasicBlock
         return nullptr;
     }
 
-    std::vector<BasicBlock*>& getDominators()
-    {
-        return dominators;
-    }
-
-    BasicBlock* getIdom() const noexcept
-    {
-        return idom;
-    }
-
-    Loop* getLoop() const noexcept
-    {
-        return loop;
-    }
-
-    void setLoop(Loop* loop_) noexcept
-    {
-        loop = loop_;
-    }
-
     bool isHeader() const noexcept;
-
-    LiveInterval* getLiveInterval() const noexcept
-    {
-        return live_int;
-    }
-
-    void setLiveInterval(LiveInterval* live) noexcept
-    {
-        live_int = live;
-    }
 
     void pushBackInst(Inst* inst)
     {

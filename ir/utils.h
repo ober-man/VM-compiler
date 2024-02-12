@@ -38,4 +38,31 @@ namespace compiler
         ASSERT_PRINT("This line should be unreachable");                                           \
         __builtin_unreachable();                                                                   \
     } while (0)
+
+#define DEFINE_GETTER(elem, func_name, type)                                                       \
+    type get##func_name() const noexcept                                                           \
+    {                                                                                              \
+        return elem;                                                                               \
+    }
+
+#define DEFINE_ARRAY_GETTER(elem, func_name, type)                                                 \
+    type get##func_name() noexcept                                                                 \
+    {                                                                                              \
+        return elem;                                                                               \
+    }
+
+#define DEFINE_GETTER_SETTER(elem, func_name, type)                                                \
+    DEFINE_GETTER(elem, func_name, type)                                                           \
+    void set##func_name(type func_name) noexcept                                                   \
+    {                                                                                              \
+        elem = func_name;                                                                          \
+    }
+
+#define DEFINE_ARRAY_GETTER_SETTER(elem, func_name, type)                                          \
+    DEFINE_ARRAY_GETTER(elem, func_name, type)                                                     \
+    void set##func_name(type func_name) noexcept                                                   \
+    {                                                                                              \
+        elem = func_name;                                                                          \
+    }
+
 } // namespace compiler

@@ -66,40 +66,11 @@ class Loop final
         is_irreducible = is_irreducible_;
     }
 
-    BasicBlock* getHeader() const noexcept
-    {
-        return header;
-    }
-
-    void setHeader(BasicBlock* bb) noexcept
-    {
-        header = bb;
-    }
-
-    Loop* getOuterLoop() const noexcept
-    {
-        return outer;
-    }
-
-    void setOuterLoop(Loop* outer_) noexcept
-    {
-        outer = outer_;
-    }
-
-    std::vector<BasicBlock*>& getBody() noexcept
-    {
-        return body;
-    }
-
-    std::vector<BasicBlock*>& getLatches() noexcept
-    {
-        return latches;
-    }
-
-    std::vector<Loop*>& getInnerLoops() noexcept
-    {
-        return inners;
-    }
+    DEFINE_GETTER_SETTER(header, Header, BasicBlock*)
+    DEFINE_GETTER_SETTER(outer, OuterLoop, Loop*)
+    DEFINE_ARRAY_GETTER(body, Body, std::vector<BasicBlock*>&)
+    DEFINE_ARRAY_GETTER(latches, Latches, std::vector<BasicBlock*>&)
+    DEFINE_ARRAY_GETTER(inners, InnerLoops, std::vector<Loop*>&)
 
     void addBlock(BasicBlock* bb)
     {

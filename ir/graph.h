@@ -37,6 +37,8 @@ class Graph
     }
     ~Graph();
 
+    using live_intervals_t = std::unordered_map<Inst*, LiveInterval*>;
+
     size_t size() const noexcept
     {
         return graph_size;
@@ -47,60 +49,12 @@ class Graph
         return graph_size == 0;
     }
 
-    std::string getName() const noexcept
-    {
-        return func_name;
-    }
-
-    void setName(std::string& name) noexcept
-    {
-        func_name = name;
-    }
-
-    std::vector<BasicBlock*>& getBBs() noexcept
-    {
-        return BBs;
-    }
-
-    std::vector<BasicBlock*>& getRpoBBs() noexcept
-    {
-        return rpo_BBs;
-    }
-
-    std::vector<BasicBlock*>& getLinearOrderBBs() noexcept
-    {
-        return linear_order_BBs;
-    }
-
-    std::unordered_map<Inst*, LiveInterval*>& getLiveIntervals() noexcept
-    {
-        return live_intervals;
-    }
-
-    void setRPOBBs(std::vector<BasicBlock*>& rpo) noexcept
-    {
-        rpo_BBs = rpo;
-    }
-
-    void setLinearOrderBBs(std::vector<BasicBlock*>& linear) noexcept
-    {
-        linear_order_BBs = linear;
-    }
-
-    void setLiveIntervals(std::unordered_map<Inst*, LiveInterval*>& live) noexcept
-    {
-        live_intervals = live;
-    }
-
-    Loop* getRootLoop() const noexcept
-    {
-        return root_loop;
-    }
-
-    void setRootLoop(Loop* loop_) noexcept
-    {
-        root_loop = loop_;
-    }
+    DEFINE_ARRAY_GETTER(func_name, Name, std::string)
+    DEFINE_ARRAY_GETTER(BBs, BBs, std::vector<BasicBlock*>&)
+    DEFINE_ARRAY_GETTER_SETTER(rpo_BBs, RpoBBs, std::vector<BasicBlock*>&)
+    DEFINE_ARRAY_GETTER_SETTER(linear_order_BBs, LinearOrderBBs, std::vector<BasicBlock*>&)
+    DEFINE_ARRAY_GETTER_SETTER(live_intervals, LiveIntervals, live_intervals_t&)
+    DEFINE_GETTER_SETTER(root_loop, RootLoop, Loop*)
 
     BasicBlock* getFirstBB() const noexcept
     {

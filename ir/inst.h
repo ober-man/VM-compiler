@@ -26,65 +26,12 @@ class Inst
         return inst_type;
     }
 
-    size_t getId() const noexcept
-    {
-        return id;
-    }
-
-    void setId(size_t id_) noexcept
-    {
-        id = id_;
-    }
-
-    size_t getLinearNum() const noexcept
-    {
-        return linear_num;
-    }
-
-    void setLinearNum(size_t lin_) noexcept
-    {
-        linear_num = lin_;
-    }
-
-    size_t getLiveNum() const noexcept
-    {
-        return live_num;
-    }
-
-    void setLiveNum(size_t live_) noexcept
-    {
-        live_num = live_;
-    }
-
-    auto getBB() const noexcept
-    {
-        return bb;
-    }
-
-    void setBB(BasicBlock* bb_) noexcept
-    {
-        bb = bb_;
-    }
-
-    Inst* getNext() const noexcept
-    {
-        return next;
-    }
-
-    void setNext(Inst* next_) noexcept
-    {
-        next = next_;
-    }
-
-    Inst* getPrev() const noexcept
-    {
-        return prev;
-    }
-
-    void setPrev(Inst* prev_) noexcept
-    {
-        prev = prev_;
-    }
+    DEFINE_GETTER_SETTER(id, Id, size_t)
+    DEFINE_GETTER_SETTER(linear_num, LinearNum, size_t)
+    DEFINE_GETTER_SETTER(live_num, LiveNum, size_t)
+    DEFINE_GETTER_SETTER(bb, BB, BasicBlock*)
+    DEFINE_GETTER_SETTER(next, Next, Inst*)
+    DEFINE_GETTER_SETTER(prev, Prev, Inst*)
 
     virtual DataType getType() const noexcept
     {
@@ -154,15 +101,7 @@ class BinaryInst final : public FixedInputsInst<2>
 
     ~BinaryInst() = default;
 
-    BinOpType getBinOpType() const noexcept
-    {
-        return op;
-    }
-
-    void setBinOpType(BinOpType op_) noexcept
-    {
-        op = op_;
-    }
+    DEFINE_GETTER_SETTER(op, BinOpType, BinOpType)
 
     DataType getType() const noexcept override
     {
@@ -198,15 +137,7 @@ class UnaryInst final : public FixedInputsInst<1>
 
     ~UnaryInst() = default;
 
-    UnOpType getUnOpType() const noexcept
-    {
-        return op;
-    }
-
-    void setUnOpType(UnOpType op_) noexcept
-    {
-        op = op_;
-    }
+    DEFINE_GETTER_SETTER(op, UnOpType, UnOpType)
 
     DataType getType() const noexcept override
     {
@@ -337,15 +268,7 @@ class ParamInst final : public Inst
         data_type = data_type_;
     }
 
-    std::string getParamName() const noexcept
-    {
-        return name;
-    }
-
-    void setParamName(std::string name_) noexcept
-    {
-        name = name_;
-    }
+    DEFINE_GETTER_SETTER(name, ParamName, std::string)
 
     DataType getType() const noexcept override
     {
@@ -374,25 +297,8 @@ class JumpInst final : public Inst
 
     ~JumpInst() = default;
 
-    JumpOpType getJumpOpType() const noexcept
-    {
-        return op;
-    }
-
-    void setJumpOpType(JumpOpType op_) noexcept
-    {
-        op = op_;
-    }
-
-    BasicBlock* getTargetBB() const noexcept
-    {
-        return target;
-    }
-
-    void setTargetBB(BasicBlock* target_) noexcept
-    {
-        target = target_;
-    }
+    DEFINE_GETTER_SETTER(op, JumpOpType, JumpOpType)
+    DEFINE_GETTER_SETTER(target, TargetBB, BasicBlock*)
 
     void dump(std::ostream& out = std::cout) const override;
 
@@ -416,10 +322,7 @@ class CallInst final : public Inst
 
     ~CallInst() = default;
 
-    std::vector<Inst*>& getArgs()
-    {
-        return args;
-    }
+    DEFINE_ARRAY_GETTER(args, Args, std::vector<Inst*>&)
 
     void setArg(Inst* arg, size_t num)
     {
@@ -465,15 +368,7 @@ class CastInst final : public FixedInputsInst<1>
         return inputs[0]->getType();
     }
 
-    DataType getToType() const noexcept
-    {
-        return to;
-    }
-
-    void setToType(DataType to_) noexcept
-    {
-        to = to_;
-    }
+    DEFINE_GETTER_SETTER(to, ToType, DataType)
 
     DataType getType() const noexcept override
     {
@@ -502,15 +397,7 @@ class MovInst final : public FixedInputsInst<1>
 
     ~MovInst() = default;
 
-    size_t getRegNum() const noexcept
-    {
-        return reg_num;
-    }
-
-    void setRegNum(size_t reg) noexcept
-    {
-        reg_num = reg;
-    }
+    DEFINE_GETTER_SETTER(reg_num, RegNum, size_t)
 
     DataType getType() const noexcept override
     {

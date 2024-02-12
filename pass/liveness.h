@@ -55,25 +55,8 @@ class LiveInterval
     {}
     ~LiveInterval() = default;
 
-    size_t getIntervalStart() const noexcept
-    {
-        return start;
-    }
-
-    void setIntervalStart(size_t start_) noexcept
-    {
-        start = start_;
-    }
-
-    size_t getIntervalEnd() const noexcept
-    {
-        return end;
-    }
-
-    void setIntervalEnd(size_t end_) noexcept
-    {
-        end = end_;
-    }
+    DEFINE_GETTER_SETTER(start, IntervalStart, size_t)
+    DEFINE_GETTER_SETTER(end, IntervalEnd, size_t)
 
   private:
     size_t start = 0;
@@ -85,6 +68,8 @@ class LiveSet
   public:
     LiveSet() = default;
     ~LiveSet() = default;
+
+    DEFINE_ARRAY_GETTER(live_set, LiveSet, std::set<Inst*>&)
 
     void addInst(Inst* inst)
     {
@@ -100,11 +85,6 @@ class LiveSet
     {
         for (auto* inst : live->getLiveSet())
             live_set.insert(inst);
-    }
-
-    std::set<Inst*>& getLiveSet() noexcept
-    {
-        return live_set;
     }
 
   private:

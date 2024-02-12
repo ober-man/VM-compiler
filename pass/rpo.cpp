@@ -45,7 +45,7 @@ bool Rpo::runPassImpl()
 
     visitBasicBlock(first_BB);
     std::reverse(rpo_bbs.begin(), rpo_bbs.end());
-    graph->setRPOBBs(rpo_bbs);
+    graph->setRpoBBs(rpo_bbs);
 
     for (auto* bb : rpo_bbs)
         bb->resetMarker(visited);

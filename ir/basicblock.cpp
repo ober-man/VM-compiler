@@ -19,12 +19,6 @@ BasicBlock::~BasicBlock()
         delete live_int;
 }
 
-void BasicBlock::setId(size_t id_) noexcept
-{
-    ASSERT(graph && !graph->getBB(id_), "BB id already existed");
-    id = id_;
-}
-
 void BasicBlock::replacePred(BasicBlock* pred, BasicBlock* bb)
 {
     auto it = std::find(preds.begin(), preds.end(), pred);

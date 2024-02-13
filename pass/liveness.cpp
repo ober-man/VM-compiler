@@ -89,6 +89,13 @@ void LivenessAnalysis::buildLiveIntervals()
         if (bb->isHeader() && !bb->getLoop()->isIrreducible())
             processLoop(bb, live_set);
     }
+
+    for (auto [inst, live_int] : live_intervals)
+        if (inst->getInstType() == InstType::Jump)
+        {
+            live_int->setIntervalStart(0);
+            live_int->setIntervalEnd(0);
+        }
 }
 
 LiveSet* LivenessAnalysis::calcInitLiveSets(BasicBlock* bb)
@@ -141,7 +148,7 @@ void LivenessAnalysis::processBBInsts(BasicBlock* bb, LiveSet* live_set)
 
         auto it = live_intervals.find(inst);
         if (it == live_intervals.end())
-            live_intervals[inst] = new LiveInterval{live_num, live_num};
+            live_intervals[inst] = new LiveInterval{live_num, live_num + LIVE_NUMBER_STEP};
         else
             it->second->setIntervalStart(live_num);
 
@@ -159,7 +166,7 @@ void LivenessAnalysis::processInstInputs(Inst* inst, LiveSet* live_set, size_t s
     {
         case InstType::Binary:
         {
-            auto* bin_inst = static_cast<FixedInputsInst<2>*>(inst);
+            auto* bin_inst = static_cast<BinaryInst*>(inst);
             auto num = bin_inst->getLiveNum();
             processInput(bin_inst->getInput(0), live_set, start, num);
             processInput(bin_inst->getInput(1), live_set, start, num);
@@ -169,7 +176,7 @@ void LivenessAnalysis::processInstInputs(Inst* inst, LiveSet* live_set, size_t s
         case InstType::Cast:
         case InstType::Mov:
         {
-            auto* un_inst = static_cast<FixedInputsInst<1>*>(inst);
+            auto* un_inst = static_cast<UnaryInst*>(inst);
             auto num = un_inst->getLiveNum();
             processInput(un_inst->getInput(0), live_set, start, num);
             break;

@@ -12,7 +12,8 @@
 namespace compiler
 {
 
-#define GRAPH_BB_NUM 50
+constexpr size_t GRAPH_BB_NUM = 20;
+constexpr size_t GRAPH_INST_NUM = 50;
 
 class BasicBlock;
 class PassManager;
@@ -23,6 +24,7 @@ class LoopAnalysis;
 class LinearOrder;
 class LivenessAnalysis;
 class LiveInterval;
+class RegisterAllocation;
 
 class Graph
 {
@@ -126,6 +128,7 @@ class Graph
     Loop* root_loop = nullptr;
 
     std::unordered_map<Inst*, LiveInterval*> live_intervals;
+    std::unordered_map<Inst*, int32_t> reg_map;
 };
 
 } // namespace compiler

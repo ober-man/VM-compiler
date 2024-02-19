@@ -16,6 +16,7 @@ class DomTree;
 class LoopAnalysis;
 class LinearOrder;
 class LivenessAnalysis;
+class RegisterAllocation;
 class Graph;
 
 template <typename T>
@@ -23,9 +24,8 @@ concept LegalAnalysis =
     std::is_same_v<T, Rpo> || std::is_same_v<T, DomTree> || std::is_same_v<T, LoopAnalysis> ||
     std::is_same_v<T, LinearOrder> || std::is_same_v<T, LivenessAnalysis>;
 
-// at this moment there is no available optimizations
 template <typename T>
-concept LegalOptimization = false;
+concept LegalOptimization = std::is_same_v<T, RegisterAllocation>;
 
 template <typename T>
 concept LegalPass = LegalAnalysis<T> || LegalOptimization<T>;

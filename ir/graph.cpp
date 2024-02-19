@@ -1,9 +1,6 @@
 #include "graph.h"
-#include "pass/domtree.h"
-#include "pass/linear_order.h"
 #include "pass/liveness.h"
 #include "pass/loop_analysis.h"
-#include "pass/rpo.h"
 
 namespace compiler
 {

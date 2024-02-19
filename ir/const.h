@@ -10,6 +10,8 @@ namespace compiler
 {
 // clang-format off
 
+constexpr size_t INVALID_REG = 1000;
+
 //////////////////////////////////////__InstType__///////////////////////////////////////////////
 
 #define INST_TYPE_LIST(ACTION)                                                                     \

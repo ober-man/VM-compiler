@@ -5,6 +5,7 @@ set(PASS_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/loop_analysis.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/linear_order.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/liveness.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/reg_alloc.cpp
 )
 
 add_library(pass SHARED ${PASS_SOURCES})

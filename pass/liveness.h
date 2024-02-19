@@ -8,8 +8,6 @@
 namespace compiler
 {
 
-#define GRAPH_BB_NUM 50
-
 class LiveInterval;
 class LiveSet;
 
@@ -57,10 +55,28 @@ class LiveInterval
 
     DEFINE_GETTER_SETTER(start, IntervalStart, size_t)
     DEFINE_GETTER_SETTER(end, IntervalEnd, size_t)
+    DEFINE_GETTER_SETTER(location, Location, size_t)
+
+    bool isEmpty() const noexcept
+    {
+        return start == end;
+    }
+
+    bool isRealRegister() const noexcept
+    {
+        return is_real_register;
+    }
+
+    void setNeedSpillFill() noexcept
+    {
+        is_real_register = false;
+    }
 
   private:
     size_t start = 0;
     size_t end = 0;
+    size_t location = INVALID_REG;
+    bool is_real_register = true;
 };
 
 class LiveSet

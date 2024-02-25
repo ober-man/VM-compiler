@@ -4,11 +4,14 @@
 
 #include <initializer_list>
 #include <iostream>
+#include <list>
 #include <memory>
 #include <vector>
 
 namespace compiler
 {
+
+constexpr size_t INST_USERS_NUM = 4;
 
 class BasicBlock;
 class Graph;
@@ -21,17 +24,40 @@ class Inst
     {}
     virtual ~Inst() = default;
 
-    InstType getInstType() const
-    {
-        return inst_type;
-    }
-
     DEFINE_GETTER_SETTER(id, Id, size_t)
+    DEFINE_GETTER(inst_type, InstType, InstType)
     DEFINE_GETTER_SETTER(linear_num, LinearNum, size_t)
     DEFINE_GETTER_SETTER(live_num, LiveNum, size_t)
     DEFINE_GETTER_SETTER(bb, BB, BasicBlock*)
     DEFINE_GETTER_SETTER(next, Next, Inst*)
     DEFINE_GETTER_SETTER(prev, Prev, Inst*)
+    DEFINE_ARRAY_GETTER(users, Users, std::list<Inst*>&)
+
+    size_t getUsersNum()
+    {
+        return users.size();
+    }
+
+    void addUser(Inst* user)
+    {
+        auto it = std::find_if(users.begin(), users.end(),
+                               [user](auto* u) { return u->getId() > user->getId(); });
+        if (it != users.end())
+            users.insert(it, user);
+        else
+            users.push_back(user);
+    }
+
+    void removeUser(Inst* user)
+    {
+        users.erase(std::find(users.begin(), users.end(), user));
+    }
+
+    void removeUser(size_t num)
+    {
+        users.erase(
+            std::find_if(users.begin(), users.end(), [num](auto u) { return u->getId() == num; }));
+    }
 
     virtual DataType getType() const noexcept
     {
@@ -39,6 +65,7 @@ class Inst
     }
 
     virtual void dump(std::ostream& out = std::cout) const = 0;
+    void dumpUsers(std::ostream& out = std::cout) const;
 
   protected:
     InstType inst_type = InstType::NoneInst;
@@ -50,6 +77,8 @@ class Inst
     BasicBlock* bb = nullptr;
     Inst* prev = nullptr;
     Inst* next = nullptr;
+
+    std::list<Inst*> users;
 };
 
 std::string getDataTypeString(DataType type);
@@ -71,17 +100,23 @@ class FixedInputsInst : public Inst
     {
         ASSERT(num < N, "too big input number");
         inputs[num] = input;
+        input->addUser(this);
     }
 
     void replaceInput(Inst* old_input, Inst* new_input)
     {
         std::replace(inputs.begin(), inputs.end(), old_input, new_input);
+        old_input->removeUser(this);
+        new_input->addUser(this);
     }
 
     void replaceInput(size_t num, Inst* new_input)
     {
         ASSERT(num < N, "too big input number");
+        auto* old_input = inputs[num];
         inputs[num] = new_input;
+        old_input->removeUser(this);
+        new_input->addUser(this);
     }
 
   protected:
@@ -97,6 +132,8 @@ class BinaryInst final : public FixedInputsInst<2>
     {
         inputs[0] = left;
         inputs[1] = right;
+        left->addUser(this);
+        right->addUser(this);
     }
 
     ~BinaryInst() = default;
@@ -116,7 +153,7 @@ class BinaryInst final : public FixedInputsInst<2>
         out << "\t"
             << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(op)] << " "
             << TYPE_NAME[static_cast<uint8_t>(getType())] << " v" << inputs[0]->getId() << ", v"
-            << inputs[1]->getId() << std::endl;
+            << inputs[1]->getId();
     }
 
   private:
@@ -133,6 +170,7 @@ class UnaryInst final : public FixedInputsInst<1>
         : FixedInputsInst(id_, InstType::Unary), op(op_)
     {
         inputs[0] = input;
+        input->addUser(this);
     }
 
     ~UnaryInst() = default;
@@ -148,8 +186,7 @@ class UnaryInst final : public FixedInputsInst<1>
     {
         out << "\t"
             << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(op)] << " "
-            << TYPE_NAME[static_cast<uint8_t>(getType())] << " v" << inputs[0]->getId()
-            << std::endl;
+            << TYPE_NAME[static_cast<uint8_t>(getType())] << " v" << inputs[0]->getId();
     }
 
   private:
@@ -246,7 +283,7 @@ class ConstInst final : public Inst
     {
         out << "\t"
             << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " "
-            << TYPE_NAME[static_cast<uint8_t>(data_type)] << " " << value << std::endl;
+            << TYPE_NAME[static_cast<uint8_t>(data_type)] << " " << value;
     }
 
   private:
@@ -279,7 +316,7 @@ class ParamInst final : public Inst
     {
         out << "\t"
             << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " "
-            << TYPE_NAME[static_cast<uint8_t>(data_type)] << " " << name << std::endl;
+            << TYPE_NAME[static_cast<uint8_t>(data_type)] << " " << name;
     }
 
   private:
@@ -310,39 +347,49 @@ class JumpInst final : public Inst
 class CallInst final : public Inst
 {
   public:
-    explicit CallInst(size_t id_) : Inst(id_, InstType::Call)
+    explicit CallInst(size_t id_, Graph* g) : Inst(id_, InstType::Call), func(g)
     {}
 
-    explicit CallInst(std::initializer_list<Inst*> args_) : Inst(0, InstType::Call)
+    explicit CallInst(std::initializer_list<Inst*> args_, size_t id_, Graph* g)
+        : Inst(id_, InstType::Call), func(g)
     {
         args.insert(args.end(), args_.begin(), args_.end());
+        std::for_each(args_.begin(), args_.end(), [this](auto* arg) { arg->addUser(this); });
     }
 
-    CallInst(std::initializer_list<size_t> args_);
+    CallInst(std::initializer_list<size_t> args_, size_t id_, Graph* g);
 
     ~CallInst() = default;
 
     DEFINE_ARRAY_GETTER(args, Args, std::vector<Inst*>&)
+    DEFINE_GETTER_SETTER(func, Func, Graph*)
 
     void setArg(Inst* arg, size_t num)
     {
         ASSERT(num < args.size(), "too big arg number");
         args[num] = arg;
+        arg->addUser(this);
     }
 
     void insertArg(Inst* arg)
     {
         args.push_back(arg);
+        arg->addUser(this);
     }
 
     void replaceArg(Inst* old_arg, Inst* new_arg)
     {
         std::replace(args.begin(), args.end(), old_arg, new_arg);
+        old_arg->removeUser(this);
+        new_arg->addUser(this);
     }
 
     void replaceArg(size_t num, Inst* new_arg)
     {
+        auto* old_arg = args[num];
         args[num] = new_arg;
+        old_arg->removeUser(this);
+        new_arg->addUser(this);
     }
 
     void dump(std::ostream& out = std::cout) const override;
@@ -359,6 +406,7 @@ class CastInst final : public FixedInputsInst<1>
         : FixedInputsInst(id_, InstType::Cast), to(to_)
     {
         inputs[0] = input;
+        input->addUser(this);
     }
 
     ~CastInst() = default;
@@ -379,7 +427,7 @@ class CastInst final : public FixedInputsInst<1>
     {
         out << "\t"
             << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " v"
-            << inputs[0]->getId() << " to " << TYPE_NAME[static_cast<uint8_t>(to)] << std::endl;
+            << inputs[0]->getId() << " to " << TYPE_NAME[static_cast<uint8_t>(to)];
     }
 
   private:
@@ -393,6 +441,7 @@ class MovInst final : public FixedInputsInst<1>
         : FixedInputsInst(id_, InstType::Mov), reg_num(reg)
     {
         inputs[0] = input;
+        input->addUser(this);
     }
 
     ~MovInst() = default;
@@ -409,7 +458,7 @@ class MovInst final : public FixedInputsInst<1>
         out << "\t"
             << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " "
             << TYPE_NAME[static_cast<uint8_t>(getType())] << " r" << reg_num << ", v"
-            << inputs[0]->getId() << std::endl;
+            << inputs[0]->getId();
     }
 
   private:
@@ -424,27 +473,30 @@ class PhiInst : public Inst
     explicit PhiInst(size_t id_) : Inst(id_, InstType::Phi)
     {}
 
-    explicit PhiInst(std::initializer_list<phi_pair_t> inputs_) : Inst(0, InstType::Phi)
+    explicit PhiInst(std::initializer_list<phi_pair_t> inputs_, size_t id_)
+        : Inst(id_, InstType::Phi)
     {
         for (auto input : inputs_)
+        {
             inputs.push_back(input);
+            input.first->addUser(this);
+        }
     }
 
     ~PhiInst() = default;
 
-    auto& getInputs() const noexcept
-    {
-        return inputs;
-    }
+    DEFINE_ARRAY_GETTER(inputs, Inputs, std::vector<phi_pair_t>&)
 
     void addInput(Inst* inst, BasicBlock* bb)
     {
         inputs.push_back(std::make_pair(inst, bb));
+        inst->addUser(this);
     }
 
     void addInput(phi_pair_t pair)
     {
         inputs.push_back(pair);
+        pair.first->addUser(this);
     }
 
     void replaceBB(size_t num, BasicBlock* new_bb)
@@ -456,7 +508,10 @@ class PhiInst : public Inst
     void replaceArg(size_t num, Inst* new_arg)
     {
         ASSERT(num < inputs.size() && "too big input number");
+        auto* old_arg = inputs[num].first;
+        old_arg->removeUser(this);
         inputs[num].first = new_arg;
+        new_arg->addUser(this);
     }
 
     DataType getType() const noexcept override

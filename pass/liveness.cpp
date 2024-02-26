@@ -91,7 +91,7 @@ void LivenessAnalysis::buildLiveIntervals()
     }
 
     for (auto [inst, live_int] : live_intervals)
-        if (inst->getInstType() == InstType::Jump)
+        if (inst->isJmpInst())
         {
             live_int->setIntervalStart(0);
             live_int->setIntervalEnd(0);
@@ -162,38 +162,27 @@ void LivenessAnalysis::processBBInsts(BasicBlock* bb, LiveSet* live_set)
 
 void LivenessAnalysis::processInstInputs(Inst* inst, LiveSet* live_set, size_t start)
 {
-    switch (inst->getInstType())
+    auto type = inst->getInstType();
+    if (inst->isBinaryInst())
     {
-        case InstType::Binary:
-        {
-            auto* bin_inst = static_cast<BinaryInst*>(inst);
-            auto num = bin_inst->getLiveNum();
-            processInput(bin_inst->getInput(0), live_set, start, num);
-            processInput(bin_inst->getInput(1), live_set, start, num);
-            break;
-        }
-        case InstType::Unary:
-        case InstType::Cast:
-        case InstType::Mov:
-        {
-            auto* un_inst = static_cast<UnaryInst*>(inst);
-            auto num = un_inst->getLiveNum();
-            processInput(un_inst->getInput(0), live_set, start, num);
-            break;
-        }
-
-        case InstType::Call:
-        {
-            auto* call_inst = static_cast<CallInst*>(inst);
-            auto num = call_inst->getLiveNum();
-            auto& args = call_inst->getArgs();
-            for (auto* arg : args)
-                processInput(arg, live_set, start, num);
-            break;
-        }
-
-        default:
-            break;
+        auto* bin_inst = static_cast<BinaryInst*>(inst);
+        auto num = bin_inst->getLiveNum();
+        processInput(bin_inst->getInput(0), live_set, start, num);
+        processInput(bin_inst->getInput(1), live_set, start, num);
+    }
+    else if (inst->isUnaryInst() || type == InstType::Cast || type == InstType::Mov)
+    {
+        auto* un_inst = static_cast<UnaryInst*>(inst);
+        auto num = un_inst->getLiveNum();
+        processInput(un_inst->getInput(0), live_set, start, num);
+    }
+    else if (type == InstType::Call)
+    {
+        auto* call_inst = static_cast<CallInst*>(inst);
+        auto num = call_inst->getLiveNum();
+        auto& args = call_inst->getArgs();
+        for (auto* arg : args)
+            processInput(arg, live_set, start, num);
     }
 }
 

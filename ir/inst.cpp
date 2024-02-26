@@ -28,10 +28,11 @@ void Inst::dumpUsers(std::ostream& out) const
 void JumpInst::dump(std::ostream& out) const
 {
     out << "\t"
-        << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(op)] << " bb" << target->getId();
+        << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " bb"
+        << target->getId();
 }
 
-CallInst::CallInst(std::initializer_list<size_t> args_, size_t id_, Graph* g)
+CallInst::CallInst(size_t id_, Graph* g, std::initializer_list<size_t> args_)
     : Inst(id_, InstType::Call), func(g)
 {
     for (auto arg : args_)

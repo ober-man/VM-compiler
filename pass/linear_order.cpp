@@ -64,22 +64,23 @@ void LinearOrder::processLoop(Loop* loop)
     }
 }
 
-static JumpOpType getInverseJumpType(JumpOpType type)
+static InstType getInverseJumpType(InstType type)
 {
+    ASSERT(type >= InstType::Jmp && type <= InstType::Jae, "wrong jump type");
     switch (type)
     {
-        case JumpOpType::Je:
-            return JumpOpType::Jne;
-        case JumpOpType::Jne:
-            return JumpOpType::Je;
-        case JumpOpType::Jb:
-            return JumpOpType::Jae;
-        case JumpOpType::Jbe:
-            return JumpOpType::Ja;
-        case JumpOpType::Ja:
-            return JumpOpType::Jbe;
-        case JumpOpType::Jae:
-            return JumpOpType::Jb;
+        case InstType::Je:
+            return InstType::Jne;
+        case InstType::Jne:
+            return InstType::Je;
+        case InstType::Jb:
+            return InstType::Jae;
+        case InstType::Jbe:
+            return InstType::Ja;
+        case InstType::Ja:
+            return InstType::Jbe;
+        case InstType::Jae:
+            return InstType::Jb;
         default:
             return type;
     }
@@ -98,11 +99,10 @@ void LinearOrder::swapSuccessors(BasicBlock* bb)
     pred->swapSuccs();
     if (pred->size() > 0)
     {
-        auto* last = pred->getLastInst();
-        if (last->getInstType() != InstType::Jump)
+        auto* last_inst = pred->getLastInst();
+        if (!last_inst->isJmpInst())
             return;
-        auto* jump_inst = static_cast<JumpInst*>(last);
-        jump_inst->setJumpOpType(getInverseJumpType(jump_inst->getJumpOpType()));
+        last_inst->setInstType(getInverseJumpType(last_inst->getInstType()));
     }
 }
 

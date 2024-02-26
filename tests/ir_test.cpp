@@ -95,8 +95,8 @@ TEST(IR_TEST, FACT)
     // Fill bb3
     auto* v7 = new PhiInst{7};
     v7->addInput(std::make_pair(v5, bb2));
-    auto* v8 = new BinaryInst{8, BinOpType::Cmp, v7, v6};
-    auto* v9 = new JumpInst{9, JumpOpType::Ja, bb5};
+    auto* v8 = new BinaryInst{8, InstType::Cmp, v7, v6};
+    auto* v9 = new JumpInst{9, InstType::Ja, bb5};
 
     bb3->pushBackPhiInst(v7);
     bb3->pushBackInst(v8);
@@ -123,9 +123,9 @@ TEST(IR_TEST, FACT)
     v10->addInput(std::make_pair(v4, bb2));
     auto* v11 = new PhiInst{11};
     v11->addInput(std::make_pair(v5, bb2));
-    auto* v12 = new BinaryInst{12, BinOpType::Mul, v10, v11};
-    auto* v13 = new BinaryInst{13, BinOpType::Add, v11, v2};
-    auto* v14 = new JumpInst{14, JumpOpType::Jmp, bb3};
+    auto* v12 = new BinaryInst{12, InstType::Mul, v10, v11};
+    auto* v13 = new BinaryInst{13, InstType::Add, v11, v2};
+    auto* v14 = new JumpInst{14, InstType::Jmp, bb3};
 
     v7->addInput(std::make_pair(v13, bb4));
     v10->addInput(std::make_pair(v12, bb4));
@@ -163,7 +163,7 @@ TEST(IR_TEST, FACT)
     auto* v15 = new PhiInst{15};
     v15->addInput(std::make_pair(v4, bb2));
     v15->addInput(std::make_pair(v12, bb4));
-    auto* v16 = new UnaryInst{16, UnOpType::Return, v15};
+    auto* v16 = new UnaryInst{16, InstType::Return, v15};
 
     bb5->pushBackPhiInst(v15);
     bb5->pushBackInst(v16);

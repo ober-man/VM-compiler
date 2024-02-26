@@ -25,7 +25,7 @@ class Inst
     virtual ~Inst() = default;
 
     DEFINE_GETTER_SETTER(id, Id, size_t)
-    DEFINE_GETTER(inst_type, InstType, InstType)
+    DEFINE_GETTER_SETTER(inst_type, InstType, InstType)
     DEFINE_GETTER_SETTER(linear_num, LinearNum, size_t)
     DEFINE_GETTER_SETTER(live_num, LiveNum, size_t)
     DEFINE_GETTER_SETTER(bb, BB, BasicBlock*)
@@ -57,6 +57,21 @@ class Inst
     {
         users.erase(
             std::find_if(users.begin(), users.end(), [num](auto u) { return u->getId() == num; }));
+    }
+
+    bool isBinaryInst()
+    {
+        return inst_type >= InstType::Add && inst_type <= InstType::Cmp;
+    }
+
+    bool isUnaryInst()
+    {
+        return inst_type >= InstType::Not && inst_type <= InstType::Return;
+    }
+
+    bool isJmpInst()
+    {
+        return inst_type >= InstType::Jmp && inst_type <= InstType::Jae;
     }
 
     virtual DataType getType() const noexcept
@@ -126,9 +141,9 @@ class FixedInputsInst : public Inst
 class BinaryInst final : public FixedInputsInst<2>
 {
   public:
-    explicit BinaryInst(size_t id_, BinOpType op_ = BinOpType::NoneBinOp, Inst* left = nullptr,
+    explicit BinaryInst(size_t id_, InstType inst_type_ = InstType::NoneInst, Inst* left = nullptr,
                         Inst* right = nullptr)
-        : FixedInputsInst(id_, InstType::Binary), op(op_)
+        : FixedInputsInst(id_, inst_type_)
     {
         inputs[0] = left;
         inputs[1] = right;
@@ -137,8 +152,6 @@ class BinaryInst final : public FixedInputsInst<2>
     }
 
     ~BinaryInst() = default;
-
-    DEFINE_GETTER_SETTER(op, BinOpType, BinOpType)
 
     DataType getType() const noexcept override
     {
@@ -151,31 +164,23 @@ class BinaryInst final : public FixedInputsInst<2>
     void dump(std::ostream& out = std::cout) const override
     {
         out << "\t"
-            << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(op)] << " "
+            << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " "
             << TYPE_NAME[static_cast<uint8_t>(getType())] << " v" << inputs[0]->getId() << ", v"
             << inputs[1]->getId();
     }
-
-  private:
-    std::string getBinOpTypeString() const noexcept;
-
-  private:
-    BinOpType op = BinOpType::NoneBinOp;
 };
 
 class UnaryInst final : public FixedInputsInst<1>
 {
   public:
-    explicit UnaryInst(size_t id_, UnOpType op_ = UnOpType::NoneUnOp, Inst* input = nullptr)
-        : FixedInputsInst(id_, InstType::Unary), op(op_)
+    explicit UnaryInst(size_t id_, InstType inst_type_ = InstType::NoneInst, Inst* input = nullptr)
+        : FixedInputsInst(id_, inst_type_)
     {
         inputs[0] = input;
         input->addUser(this);
     }
 
     ~UnaryInst() = default;
-
-    DEFINE_GETTER_SETTER(op, UnOpType, UnOpType)
 
     DataType getType() const noexcept override
     {
@@ -185,15 +190,9 @@ class UnaryInst final : public FixedInputsInst<1>
     void dump(std::ostream& out = std::cout) const override
     {
         out << "\t"
-            << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(op)] << " "
+            << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " "
             << TYPE_NAME[static_cast<uint8_t>(getType())] << " v" << inputs[0]->getId();
     }
-
-  private:
-    std::string getUnOpTypeString() const noexcept;
-
-  private:
-    UnOpType op = UnOpType::NoneUnOp;
 };
 
 class ConstInst final : public Inst
@@ -327,20 +326,18 @@ class ParamInst final : public Inst
 class JumpInst final : public Inst
 {
   public:
-    explicit JumpInst(size_t id_, JumpOpType op_ = JumpOpType::NoneJumpOp,
+    explicit JumpInst(size_t id_, InstType inst_type_ = InstType::NoneInst,
                       BasicBlock* target_ = nullptr)
-        : Inst(id_, InstType::Jump), op(op_), target(target_)
+        : Inst(id_, inst_type_), target(target_)
     {}
 
     ~JumpInst() = default;
 
-    DEFINE_GETTER_SETTER(op, JumpOpType, JumpOpType)
     DEFINE_GETTER_SETTER(target, TargetBB, BasicBlock*)
 
     void dump(std::ostream& out = std::cout) const override;
 
   private:
-    JumpOpType op = JumpOpType::NoneJumpOp;
     BasicBlock* target = nullptr;
 };
 
@@ -350,15 +347,14 @@ class CallInst final : public Inst
     explicit CallInst(size_t id_, Graph* g) : Inst(id_, InstType::Call), func(g)
     {}
 
-    explicit CallInst(std::initializer_list<Inst*> args_, size_t id_, Graph* g)
+    explicit CallInst(size_t id_, Graph* g, std::initializer_list<Inst*> args_)
         : Inst(id_, InstType::Call), func(g)
     {
         args.insert(args.end(), args_.begin(), args_.end());
         std::for_each(args_.begin(), args_.end(), [this](auto* arg) { arg->addUser(this); });
     }
 
-    CallInst(std::initializer_list<size_t> args_, size_t id_, Graph* g);
-
+    CallInst(size_t id_, Graph* g, std::initializer_list<size_t> args_);
     ~CallInst() = default;
 
     DEFINE_ARRAY_GETTER(args, Args, std::vector<Inst*>&)
@@ -473,7 +469,7 @@ class PhiInst : public Inst
     explicit PhiInst(size_t id_) : Inst(id_, InstType::Phi)
     {}
 
-    explicit PhiInst(std::initializer_list<phi_pair_t> inputs_, size_t id_)
+    explicit PhiInst(size_t id_, std::initializer_list<phi_pair_t> inputs_)
         : Inst(id_, InstType::Phi)
     {
         for (auto input : inputs_)

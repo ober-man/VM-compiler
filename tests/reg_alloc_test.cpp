@@ -10,7 +10,7 @@ void checkRegisters(std::shared_ptr<Graph> g,
     auto& live_intervals = g->getLiveIntervals();
     for (auto [inst, interval] : live_intervals)
     {
-        if (inst->getInstType() == InstType::Jump)
+        if (inst->isJmpInst())
             continue;
         uint32_t id = inst->getId();
         auto elem = expected[id];
@@ -68,20 +68,20 @@ TEST(REGALLOC_TEST, TEST1)
     bb1->pushBackInst(v0);
     bb1->pushBackInst(v1);
 
-    auto* v2 = new BinaryInst{2, BinOpType::Cmp, v0, v1};
-    auto* v3 = new JumpInst{3, JumpOpType::Ja, bb4};
+    auto* v2 = new BinaryInst{2, InstType::Cmp, v0, v1};
+    auto* v3 = new JumpInst{3, InstType::Ja, bb4};
     bb2->pushBackInst(v2);
     bb2->pushBackInst(v3);
 
-    auto* v4 = new BinaryInst{4, BinOpType::Add, v1, v0};
-    auto* v5 = new JumpInst{5, JumpOpType::Jmp, bb4};
+    auto* v4 = new BinaryInst{4, InstType::Add, v1, v0};
+    auto* v5 = new JumpInst{5, InstType::Jmp, bb4};
     bb3->pushBackInst(v4);
     bb3->pushBackInst(v5);
 
     auto* v6 = new PhiInst{6};
     v6->addInput(std::make_pair(v1, bb2));
     v6->addInput(std::make_pair(v4, bb3));
-    auto* v7 = new UnaryInst{7, UnOpType::Return, v6};
+    auto* v7 = new UnaryInst{7, InstType::Return, v6};
     bb4->pushBackPhiInst(v6);
     bb4->pushBackInst(v7);
 
@@ -178,24 +178,24 @@ TEST(REGALLOC_TEST, TEST2)
     bb1->pushBackInst(v2);
 
     auto* v3 = new PhiInst{3};
-    auto* v4 = new BinaryInst{4, BinOpType::Sub, v3, v2};
-    auto* v5 = new JumpInst{5, JumpOpType::Jmp, bb3};
+    auto* v4 = new BinaryInst{4, InstType::Sub, v3, v2};
+    auto* v5 = new JumpInst{5, InstType::Jmp, bb3};
     bb2->pushBackPhiInst(v3);
     bb2->pushBackInst(v4);
     bb2->pushBackInst(v5);
 
-    auto* v6 = new BinaryInst{6, BinOpType::Add, v0, v1};
-    auto* v7 = new BinaryInst{7, BinOpType::Mul, v6, v1};
-    auto* v75 = new BinaryInst{75, BinOpType::Cmp, v7, v2};
-    auto* v8 = new JumpInst{8, JumpOpType::Jae, bb5};
+    auto* v6 = new BinaryInst{6, InstType::Add, v0, v1};
+    auto* v7 = new BinaryInst{7, InstType::Mul, v6, v1};
+    auto* v75 = new BinaryInst{75, InstType::Cmp, v7, v2};
+    auto* v8 = new JumpInst{8, InstType::Jae, bb5};
     bb3->pushBackInst(v6);
     bb3->pushBackInst(v7);
     bb3->pushBackInst(v75);
     bb3->pushBackInst(v8);
 
-    auto* v9 = new BinaryInst{9, BinOpType::Div, v7, v2};
-    auto* v95 = new BinaryInst{95, BinOpType::Cmp, v9, v1};
-    auto* v10 = new JumpInst{10, JumpOpType::Jb, bb5};
+    auto* v9 = new BinaryInst{9, InstType::Div, v7, v2};
+    auto* v95 = new BinaryInst{95, InstType::Cmp, v9, v1};
+    auto* v10 = new JumpInst{10, InstType::Jb, bb5};
     bb4->pushBackInst(v9);
     bb4->pushBackInst(v95);
     bb4->pushBackInst(v10);
@@ -203,14 +203,14 @@ TEST(REGALLOC_TEST, TEST2)
     auto* v11 = new PhiInst{11};
     v11->addInput(std::make_pair(v6, bb3));
     v11->addInput(std::make_pair(v9, bb4));
-    auto* v12 = new BinaryInst{12, BinOpType::Sub, v11, v0};
-    auto* v13 = new UnaryInst{13, UnOpType::Return, v12};
+    auto* v12 = new BinaryInst{12, InstType::Sub, v11, v0};
+    auto* v13 = new UnaryInst{13, InstType::Return, v12};
     bb5->pushBackPhiInst(v11);
     bb5->pushBackInst(v12);
     bb5->pushBackInst(v13);
 
-    auto* v14 = new BinaryInst{14, BinOpType::Sub, v9, v1};
-    auto* v15 = new JumpInst{15, JumpOpType::Jmp, bb2};
+    auto* v14 = new BinaryInst{14, InstType::Sub, v9, v1};
+    auto* v15 = new JumpInst{15, InstType::Jmp, bb2};
     bb6->pushBackInst(v14);
     bb6->pushBackInst(v15);
 

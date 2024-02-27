@@ -41,6 +41,26 @@ void Graph::insertBB(BasicBlock* bb)
     ++graph_size;
 }
 
+void Graph::pushBackConstInst(ConstInst* inst)
+{
+    if (first_const == nullptr)
+        first_const = inst;
+    last_const = inst;
+}
+
+void Graph::removeBB(BasicBlock* bb)
+{
+    auto it = BBs.erase(std::find(BBs.begin(), BBs.end(), bb));
+    ASSERT(it != BBs.end(), "remove not existing bb");
+}
+
+void Graph::removeBB(size_t num)
+{
+    auto it = BBs.erase(
+        std::find_if(BBs.begin(), BBs.end(), [num](auto bb) { return bb->getId() == num; }));
+    ASSERT(it != BBs.end(), "remove not existing bb");
+}
+
 /**
  * Insert bb after prev_bb
  */

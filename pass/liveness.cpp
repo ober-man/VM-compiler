@@ -91,7 +91,7 @@ void LivenessAnalysis::buildLiveIntervals()
     }
 
     for (auto [inst, live_int] : live_intervals)
-        if (inst->isJmpInst())
+        if (inst->isJumpInst())
         {
             live_int->setIntervalStart(0);
             live_int->setIntervalEnd(0);

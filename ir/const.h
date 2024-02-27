@@ -38,6 +38,7 @@ constexpr size_t INVALID_REG = 1000;
 
 #define UNARY_OP_LIST(ACTION)                                                                      \
     ACTION(Not,    UnaryInst)                                                                      \
+    ACTION(Neg,    UnaryInst)                                                                      \
     ACTION(Return, UnaryInst)
 
 #define JUMP_OP_LIST(ACTION)                                                                       \

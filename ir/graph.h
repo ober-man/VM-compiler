@@ -29,7 +29,7 @@ class RegisterAllocation;
 class Graph
 {
   public:
-    Graph(std::string name = "") : func_name(name), graph_size(0)
+    Graph(std::string name = "") : func_name(name), graph_size(0), cur_inst_id(0)
     {
         BBs.reserve(GRAPH_BB_NUM);
         rpo_BBs.reserve(GRAPH_BB_NUM);
@@ -51,12 +51,15 @@ class Graph
         return graph_size == 0;
     }
 
+    DEFINE_GETTER_SETTER(cur_inst_id, CurInstId, size_t)
     DEFINE_ARRAY_GETTER(func_name, Name, std::string)
     DEFINE_ARRAY_GETTER(BBs, BBs, std::vector<BasicBlock*>&)
     DEFINE_ARRAY_GETTER_SETTER(rpo_BBs, RpoBBs, std::vector<BasicBlock*>&)
     DEFINE_ARRAY_GETTER_SETTER(linear_order_BBs, LinearOrderBBs, std::vector<BasicBlock*>&)
     DEFINE_ARRAY_GETTER_SETTER(live_intervals, LiveIntervals, live_intervals_t&)
     DEFINE_GETTER_SETTER(root_loop, RootLoop, Loop*)
+    DEFINE_GETTER(first_const, FirstConst, ConstInst*)
+    DEFINE_GETTER(last_const, LastConst, ConstInst*)
 
     BasicBlock* getFirstBB() const noexcept
     {
@@ -80,22 +83,42 @@ class Graph
             return BBs[id];
     }
 
-    void removeBB(BasicBlock* bb)
+    template <typename T>
+    ConstInst* findConstant(T value)
     {
-        auto it = BBs.erase(std::find(BBs.begin(), BBs.end(), bb));
-        ASSERT(it != BBs.end(), "remove not existing bb");
+        if (first_const == nullptr)
+        {
+            auto* new_const = new ConstInst{cur_inst_id++, value};
+            auto* first_bb = getFirstBB();
+            ASSERT(first_bb != nullptr);
+            first_bb->pushBackInst(new_const);
+            first_const = new_const;
+            last_const = new_const;
+            return first_const;
+        }
+
+        for (ConstInst* cur_const = first_const; cur_const != nullptr;
+             cur_const = static_cast<ConstInst*>(cur_const->getNext()))
+            if (cur_const->getType() == getDataType<T>() && cur_const->getValue<T>() == value)
+                return cur_const;
+
+        auto* new_const = new ConstInst{cur_inst_id++, value};
+        new_const->setPrev(last_const);
+        new_const->setNext(nullptr);
+        last_const->setNext(new_const);
+        last_const = new_const;
+        return last_const;
     }
 
-    void removeBB(size_t num)
-    {
-        auto it = BBs.erase(
-            std::find_if(BBs.begin(), BBs.end(), [num](auto bb) { return bb->getId() == num; }));
-        ASSERT(it != BBs.end(), "remove not existing bb");
-    }
+    void pushBackConstInst(ConstInst* inst);
+
+    void removeBB(BasicBlock* bb);
+    void removeBB(size_t num);
 
     void insertBB(BasicBlock* bb);
     void insertBBAfter(BasicBlock* prev_bb, BasicBlock* bb, bool is_true_succ = true);
     void addEdge(BasicBlock* prev_bb, BasicBlock* bb);
+
     void replaceBB(BasicBlock* bb, BasicBlock* new_bb);
     void replaceBB(size_t num, BasicBlock* new_bb);
 
@@ -118,6 +141,7 @@ class Graph
   private:
     std::string func_name = "";
     size_t graph_size = 0;
+    size_t cur_inst_id = 0;
 
     std::vector<BasicBlock*> BBs;
     std::vector<BasicBlock*> rpo_BBs;
@@ -126,6 +150,9 @@ class Graph
     std::unique_ptr<PassManager> pm = nullptr;
     std::unique_ptr<MarkerManager> mm = nullptr;
     Loop* root_loop = nullptr;
+
+    ConstInst* first_const = nullptr;
+    ConstInst* last_const = nullptr;
 
     std::unordered_map<Inst*, LiveInterval*> live_intervals;
     std::unordered_map<Inst*, int32_t> reg_map;

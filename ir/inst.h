@@ -59,6 +59,15 @@ class Inst
             std::find_if(users.begin(), users.end(), [num](auto u) { return u->getId() == num; }));
     }
 
+    void replaceUsers(Inst* inst)
+    {
+        ASSERT(inst != nullptr);
+        ASSERT(inst != this);
+        for (auto* user : users)
+            user->replaceInput(this, inst);
+        users.clear();
+    }
+
     bool isBinaryInst()
     {
         return inst_type >= InstType::Add && inst_type <= InstType::Cmp;
@@ -69,9 +78,14 @@ class Inst
         return inst_type >= InstType::Not && inst_type <= InstType::Return;
     }
 
-    bool isJmpInst()
+    bool isJumpInst()
     {
         return inst_type >= InstType::Jmp && inst_type <= InstType::Jae;
+    }
+
+    bool isConstInst()
+    {
+        return inst_type == InstType::Const;
     }
 
     virtual DataType getType() const noexcept
@@ -79,6 +93,10 @@ class Inst
         return DataType::NoType;
     }
 
+    virtual void setInput([[maybe_unused]] Inst* input, [[maybe_unused]] size_t num)
+    {}
+    virtual void replaceInput([[maybe_unused]] Inst* old_input, [[maybe_unused]] Inst* new_input)
+    {}
     virtual void dump(std::ostream& out = std::cout) const = 0;
     void dumpUsers(std::ostream& out = std::cout) const;
 
@@ -111,17 +129,18 @@ class FixedInputsInst : public Inst
         return inputs[num];
     }
 
-    void setInput(Inst* input, size_t num)
+    void setInput(Inst* input, size_t num) override
     {
         ASSERT(num < N, "too big input number");
         inputs[num] = input;
         input->addUser(this);
     }
 
-    void replaceInput(Inst* old_input, Inst* new_input)
+    void replaceInput(Inst* old_input, Inst* new_input) override
     {
-        std::replace(inputs.begin(), inputs.end(), old_input, new_input);
-        old_input->removeUser(this);
+        auto it = std::find(inputs.begin(), inputs.end(), old_input);
+        ASSERT(it != inputs.end());
+        *it = new_input;
         new_input->addUser(this);
     }
 
@@ -130,7 +149,6 @@ class FixedInputsInst : public Inst
         ASSERT(num < N, "too big input number");
         auto* old_input = inputs[num];
         inputs[num] = new_input;
-        old_input->removeUser(this);
         new_input->addUser(this);
     }
 
@@ -195,6 +213,23 @@ class UnaryInst final : public FixedInputsInst<1>
     }
 };
 
+template <typename T>
+constexpr DataType getDataType()
+{
+    if constexpr (std::is_integral_v<T>)
+    {
+        if (sizeof(T) == sizeof(uint32_t))
+            return DataType::i32;
+        else
+            return DataType::i64;
+    }
+    else if constexpr (std::is_same_v<T, float>)
+        return DataType::f32;
+    else if constexpr (std::is_same_v<T, double>)
+        return DataType::f64;
+    return DataType::NoType;
+}
+
 class ConstInst final : public Inst
 {
   public:
@@ -220,23 +255,6 @@ class ConstInst final : public Inst
     }
 
     ~ConstInst() = default;
-
-    template <typename T>
-    static constexpr DataType getDataType()
-    {
-        if constexpr (std::is_integral_v<T>)
-        {
-            if (sizeof(T) == sizeof(uint32_t))
-                return DataType::i32;
-            else
-                return DataType::i64;
-        }
-        else if constexpr (std::is_same_v<T, float>)
-            return DataType::f32;
-        else if constexpr (std::is_same_v<T, double>)
-            return DataType::f64;
-        return DataType::NoType;
-    }
 
     uint32_t getInt32Value() const
     {
@@ -266,6 +284,23 @@ class ConstInst final : public Inst
     {
         ASSERT(data_type == DataType::f64);
         return static_cast<double>(value);
+    }
+
+    template <typename T>
+    T getValue() const
+    {
+        if constexpr (std::is_integral_v<T>)
+        {
+            if (sizeof(T) == sizeof(uint32_t))
+                return getInt32Value();
+            else
+                return getInt64Value();
+        }
+        else if constexpr (std::is_same_v<T, float>)
+            return getFloatValue();
+        else if constexpr (std::is_same_v<T, double>)
+            return getDoubleValue();
+        return static_cast<T>(0);
     }
 
     DataType getType() const noexcept override
@@ -360,7 +395,7 @@ class CallInst final : public Inst
     DEFINE_ARRAY_GETTER(args, Args, std::vector<Inst*>&)
     DEFINE_GETTER_SETTER(func, Func, Graph*)
 
-    void setArg(Inst* arg, size_t num)
+    void setInput(Inst* arg, size_t num) override
     {
         ASSERT(num < args.size(), "too big arg number");
         args[num] = arg;
@@ -373,18 +408,15 @@ class CallInst final : public Inst
         arg->addUser(this);
     }
 
-    void replaceArg(Inst* old_arg, Inst* new_arg)
+    void replaceInput(Inst* old_arg, Inst* new_arg) override
     {
         std::replace(args.begin(), args.end(), old_arg, new_arg);
-        old_arg->removeUser(this);
         new_arg->addUser(this);
     }
 
-    void replaceArg(size_t num, Inst* new_arg)
+    void replaceInput(size_t num, Inst* new_arg)
     {
-        auto* old_arg = args[num];
         args[num] = new_arg;
-        old_arg->removeUser(this);
         new_arg->addUser(this);
     }
 
@@ -495,17 +527,31 @@ class PhiInst : public Inst
         pair.first->addUser(this);
     }
 
+    void setInput(Inst* input, size_t num) override
+    {
+        ASSERT(num < inputs.size(), "too big arg number");
+        inputs[num].first = input;
+        input->addUser(this);
+    }
+
     void replaceBB(size_t num, BasicBlock* new_bb)
     {
         ASSERT(num < inputs.size() && "too big input number");
         inputs[num].second = new_bb;
     }
 
-    void replaceArg(size_t num, Inst* new_arg)
+    void replaceInput(Inst* old_input, Inst* new_input) override
+    {
+        auto it = std::find_if(inputs.begin(), inputs.end(),
+                               [old_input](auto phi_pair) { return phi_pair.first == old_input; });
+        ASSERT(it != inputs.end());
+        (*it).first = new_input;
+        new_input->addUser(this);
+    }
+
+    void replaceInput(size_t num, Inst* new_arg)
     {
         ASSERT(num < inputs.size() && "too big input number");
-        auto* old_arg = inputs[num].first;
-        old_arg->removeUser(this);
         inputs[num].first = new_arg;
         new_arg->addUser(this);
     }

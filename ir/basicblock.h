@@ -30,6 +30,11 @@ class BasicBlock
         return bb_size;
     }
 
+    void incrSize() noexcept
+    {
+        ++bb_size;
+    }
+
     bool isEmpty() noexcept
     {
         return bb_size == 0;

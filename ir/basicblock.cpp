@@ -24,12 +24,19 @@ void BasicBlock::pushBackInst(Inst* inst)
     ASSERT(inst->getInstType() != InstType::Phi);
     ASSERT(!inst->getPrev(), "inserted inst has predecessor");
 
+    if (inst->isConstInst())
+        graph->pushBackConstInst(static_cast<ConstInst*>(inst));
+
     if (first_inst == nullptr)
         first_inst = inst;
 
     inst->setPrev(last_inst);
     inst->setNext(nullptr);
     inst->setBB(this);
+
+    auto inst_id = inst->getId();
+    if (graph->getCurInstId() < inst_id)
+        graph->setCurInstId(++inst_id);
 
     if (last_inst != nullptr)
         last_inst->setNext(inst);
@@ -49,6 +56,10 @@ void BasicBlock::pushBackPhiInst(PhiInst* inst)
     inst->setNext(nullptr);
     inst->setBB(this);
 
+    auto inst_id = static_cast<Inst*>(inst)->getId();
+    if (graph->getCurInstId() < inst_id)
+        graph->setCurInstId(++inst_id);
+
     if (last_phi != nullptr)
         last_phi->setNext(inst);
     last_phi = inst;
@@ -67,6 +78,10 @@ void BasicBlock::pushFrontInst(Inst* inst)
     inst->setNext(first_inst);
     inst->setBB(this);
 
+    auto inst_id = inst->getId();
+    if (graph->getCurInstId() < inst_id)
+        graph->setCurInstId(++inst_id);
+
     if (first_inst)
         first_inst->setPrev(inst);
     first_inst = inst;
@@ -84,6 +99,10 @@ void BasicBlock::pushFrontPhiInst(PhiInst* inst)
     inst->setPrev(nullptr);
     inst->setNext(first_phi);
     inst->setBB(this);
+
+    auto inst_id = static_cast<Inst*>(inst)->getId();
+    if (graph->getCurInstId() < inst_id)
+        graph->setCurInstId(++inst_id);
 
     if (first_phi)
         first_phi->setPrev(inst);
@@ -112,6 +131,10 @@ void BasicBlock::insertAfter(Inst* prev_inst, Inst* inst)
     inst->setNext(next_inst);
     inst->setPrev(prev_inst);
     inst->setBB(this);
+
+    auto inst_id = inst->getId();
+    if (graph->getCurInstId() < inst_id)
+        graph->setCurInstId(++inst_id);
     ++bb_size;
 }
 
@@ -139,6 +162,10 @@ void BasicBlock::removeInst(Inst* inst)
 {
     auto next_inst = inst->getNext();
     auto prev_inst = inst->getPrev();
+    if (inst == first_inst)
+        first_inst = next_inst;
+    if (inst == last_inst)
+        last_inst = prev_inst;
     if (next_inst)
         next_inst->setPrev(prev_inst);
     if (prev_inst)

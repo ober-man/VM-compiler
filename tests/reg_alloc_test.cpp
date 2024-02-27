@@ -10,7 +10,7 @@ void checkRegisters(std::shared_ptr<Graph> g,
     auto& live_intervals = g->getLiveIntervals();
     for (auto [inst, interval] : live_intervals)
     {
-        if (inst->isJmpInst())
+        if (inst->isJumpInst())
             continue;
         uint32_t id = inst->getId();
         auto elem = expected[id];

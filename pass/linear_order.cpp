@@ -100,7 +100,7 @@ void LinearOrder::swapSuccessors(BasicBlock* bb)
     if (pred->size() > 0)
     {
         auto* last_inst = pred->getLastInst();
-        if (!last_inst->isJmpInst())
+        if (!last_inst->isJumpInst())
             return;
         last_inst->setInstType(getInverseJumpType(last_inst->getInstType()));
     }

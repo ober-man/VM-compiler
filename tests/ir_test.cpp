@@ -42,11 +42,17 @@ TEST(IR_TEST, FACT)
     auto* bb4 = new BasicBlock{4, graph};
     auto* bb5 = new BasicBlock{5, graph};
 
+    graph->insertBB(bb1);
+    graph->insertBB(bb2);
+    graph->insertBB(bb3);
+    graph->insertBB(bb4);
+    graph->insertBB(bb5);
+
     // Fill bb1
     auto* v1 = new ParamInst{1, DataType::i32, "a0"};
     auto* v2 = new ConstInst{2, static_cast<uint64_t>(1)};
     auto* v3 = new ConstInst{3, static_cast<uint64_t>(2)};
-
+    std::cout << "first" << std::endl;
     bb1->pushBackInst(v1);
     bb1->pushBackInst(v2);
     bb1->pushBackInst(v3);
@@ -180,12 +186,6 @@ TEST(IR_TEST, FACT)
 
         ASSERT_EQ(v16->getBB()->getId(), 5);
     }
-
-    graph->insertBB(bb1);
-    graph->insertBB(bb2);
-    graph->insertBB(bb3);
-    graph->insertBB(bb4);
-    graph->insertBB(bb5);
 
     // graph->dump();
 

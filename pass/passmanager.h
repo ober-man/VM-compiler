@@ -16,6 +16,7 @@ class DomTree;
 class LoopAnalysis;
 class ConstFolding;
 class Dce;
+class Peepholes;
 class LinearOrder;
 class LivenessAnalysis;
 class RegisterAllocation;
@@ -28,7 +29,7 @@ concept LegalAnalysis =
 
 template <typename T>
 concept LegalOptimization = std::is_same_v<T, ConstFolding> || std::is_same_v<T, Dce> ||
-                            std::is_same_v<T, RegisterAllocation>;
+                            std::is_same_v<T, Peepholes> || std::is_same_v<T, RegisterAllocation>;
 
 template <typename T>
 concept LegalPass = LegalAnalysis<T> || LegalOptimization<T>;

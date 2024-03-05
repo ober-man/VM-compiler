@@ -92,8 +92,6 @@ class Graph
             auto* first_bb = getFirstBB();
             ASSERT(first_bb != nullptr);
             first_bb->pushBackInst(new_const);
-            first_const = new_const;
-            last_const = new_const;
             return first_const;
         }
 
@@ -103,9 +101,8 @@ class Graph
                 return cur_const;
 
         auto* new_const = new ConstInst{cur_inst_id++, value};
-        new_const->setPrev(last_const);
-        new_const->setNext(nullptr);
-        last_const->setNext(new_const);
+        auto* first_bb = getFirstBB();
+        first_bb->pushBackInst(new_const);
         last_const = new_const;
         return last_const;
     }

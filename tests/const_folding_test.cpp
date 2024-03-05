@@ -27,7 +27,7 @@ TEST(CONST_FOLDING_TEST, TEST1)
         v300. Const i64 5
         v400. Const i64 10
 
-    BB [2/4] (live 6)
+    BB [2/4]
         v15. Mul  i64 v200, v300
         v2. Cmp   i64 v0, v15
         v3. Ja    bb4
@@ -89,10 +89,13 @@ TEST(CONST_FOLDING_TEST, TEST1)
     bb4->pushBackPhiInst(v6);
     bb4->pushBackInst(v7);
 
-    graph->dump();
+    // graph->dump();
     graph->runPass<ConstFolding>();
     graph->runPass<Dce>();
-    graph->dump();
+    // graph->dump();
+    ASSERT_EQ(static_cast<BinaryInst*>(v2)->getInput(1), v400);
+    ASSERT_EQ(static_cast<BinaryInst*>(v4)->getInput(0), bb1->getLastInst());
+    ASSERT_EQ(static_cast<ConstInst*>(bb1->getLastInst())->getIntValue(), 3);
 }
 
 /**
@@ -214,8 +217,18 @@ TEST(CONST_FOLDING_TEST, TEST2)
     v3->addInput(std::make_pair(v1, bb1));
     v3->addInput(std::make_pair(v14, bb6));
 
-    graph->dump();
+    // graph->dump();
     graph->runPass<ConstFolding>();
     graph->runPass<Dce>();
-    graph->dump();
+    // graph->dump();
+
+    ASSERT_EQ(bb2->getFirstInst(), v5);
+    ASSERT_EQ(static_cast<PhiInst*>(v3)->getInputs()[1].first, bb1->getLastInst());
+    ASSERT_EQ(static_cast<ConstInst*>(bb1->getLastInst())->getIntValue(), 9);
+    ASSERT_EQ(static_cast<ConstInst*>(bb1->getLastInst()->getPrev())->getIntValue(), 11);
+    ASSERT_EQ(bb3->getFirstInst(), v75);
+    ASSERT_EQ(static_cast<BinaryInst*>(v75)->getInput(0), v1);
+    ASSERT_EQ(static_cast<BinaryInst*>(v95)->getInput(0), v200);
+    ASSERT_EQ(static_cast<PhiInst*>(v11)->getInputs()[0].first, bb1->getLastInst()->getPrev());
+    ASSERT_EQ(static_cast<PhiInst*>(v11)->getInputs()[1].first, v200);
 }

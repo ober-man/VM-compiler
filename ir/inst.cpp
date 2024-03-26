@@ -48,8 +48,11 @@ void CallInst::dump(std::ostream& out) const
     out << "\t"
         << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " "
         << func->getName();
-    out << "(";
-    std::for_each(args.begin(), args.end(), [&out](auto arg) { out << arg->getId() << " "; });
+    if (args.size() == 0)
+        return;
+    out << "(v" << args[0]->getId();
+    for (auto it = ++args.begin(), ite = args.end(); it != ite; ++it)
+        out << ", v" << (*it)->getId();
     out << ")";
 }
 
@@ -60,6 +63,12 @@ void PhiInst::dump(std::ostream& out) const
     for (auto&& input : inputs)
         out << "("
             << "v" << input.first->getId() << ", bb" << input.second->getId() << ")";
+}
+
+void RetVoidInst::dump(std::ostream& out) const
+{
+    out << "\t"
+        << "v" << id << ". " << OPER_NAME[static_cast<uint8_t>(inst_type)] << " ";
 }
 
 } // namespace compiler

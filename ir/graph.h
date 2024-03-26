@@ -112,6 +112,7 @@ class Graph
     void removeBB(BasicBlock* bb);
     void removeBB(size_t num);
 
+    void addBB(BasicBlock* bb);
     void insertBB(BasicBlock* bb);
     void insertBBAfter(BasicBlock* prev_bb, BasicBlock* bb, bool is_true_succ = true);
     void addEdge(BasicBlock* prev_bb, BasicBlock* bb);

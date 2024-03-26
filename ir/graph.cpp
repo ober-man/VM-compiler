@@ -41,6 +41,13 @@ void Graph::insertBB(BasicBlock* bb)
     ++graph_size;
 }
 
+void Graph::addBB(BasicBlock* bb)
+{
+    BBs.push_back(bb);
+    bb->setId(graph_size);
+    ++graph_size;
+}
+
 void Graph::pushBackConstInst(ConstInst* inst)
 {
     if (first_const == nullptr)
@@ -73,7 +80,10 @@ void Graph::insertBBAfter(BasicBlock* prev_bb, BasicBlock* bb, bool is_true_succ
         bb->addPred(prev_bb);
 
         if (true_succ != nullptr)
+        {
             true_succ->addPred(bb);
+            bb->addSucc(true_succ);
+        }
     }
     else
     {
@@ -82,7 +92,10 @@ void Graph::insertBBAfter(BasicBlock* prev_bb, BasicBlock* bb, bool is_true_succ
         bb->addPred(prev_bb);
 
         if (false_succ != nullptr)
+        {
             false_succ->addPred(bb);
+            bb->addSucc(false_succ);
+        }
     }
     BBs.push_back(bb);
     ++graph_size;

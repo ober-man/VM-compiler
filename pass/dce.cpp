@@ -24,7 +24,6 @@ bool Dce::runPassImpl()
             {
                 auto* next_inst = inst->getNext();
                 bb->removeInst(inst);
-                delete inst;
                 inst = next_inst;
             }
             else

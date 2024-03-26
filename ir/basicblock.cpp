@@ -141,21 +141,25 @@ void BasicBlock::insertAfter(Inst* prev_inst, Inst* inst)
 void BasicBlock::popFrontInst()
 {
     ASSERT(first_inst, "first inst not existed");
+    auto deleted_inst = first_inst;
     auto second_inst = first_inst->getNext();
     second_inst->setPrev(nullptr);
     first_inst->setNext(nullptr);
     first_inst = second_inst;
     --bb_size;
+    delete deleted_inst;
 }
 
 void BasicBlock::popBackInst()
 {
     ASSERT(last_inst, "last inst not existed");
+    auto deleted_inst = first_inst;
     auto prev_inst = last_inst->getPrev();
     prev_inst->setNext(nullptr);
     last_inst->setPrev(nullptr);
     last_inst = prev_inst;
     --bb_size;
+    delete deleted_inst;
 }
 
 void BasicBlock::removeInst(Inst* inst)
@@ -171,6 +175,7 @@ void BasicBlock::removeInst(Inst* inst)
     if (prev_inst)
         prev_inst->setNext(next_inst);
     --bb_size;
+    delete inst;
 }
 
 void BasicBlock::addPred(BasicBlock* bb)
@@ -262,6 +267,37 @@ void BasicBlock::replaceSucc(size_t num, BasicBlock* bb)
         std::cerr << "replace not existing succ" << std::endl;
         abort();
     }
+}
+
+BasicBlock* BasicBlock::splitBlockAfterInst(Inst* inst, bool make_true_succ)
+{
+    ASSERT(inst != nullptr);
+    ASSERT(inst->getBB() == this);
+
+    auto id = graph->size() + 1;
+    auto* new_bb = new BasicBlock{id, graph};
+    graph->insertBBAfter(this, new_bb);
+
+    for (Inst* cur_inst = inst->getNext(); cur_inst != nullptr; cur_inst = cur_inst->getNext())
+        new_bb->pushBackInst(cur_inst);
+
+    inst->setNext(nullptr);
+    last_inst = inst;
+    if (inst->getInstType() == InstType::Phi)
+        first_inst = nullptr;
+
+    for (auto* succ : {true_succ, false_succ})
+        if (succ != nullptr)
+        {
+            succ->replacePred(this, new_bb);
+            succ = nullptr;
+        }
+
+    if (make_true_succ)
+        true_succ = new_bb;
+    else
+        false_succ = new_bb;
+    return new_bb;
 }
 
 void BasicBlock::setMarker(marker_t marker)

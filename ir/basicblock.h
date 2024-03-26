@@ -108,6 +108,8 @@ class BasicBlock
     void replaceSucc(BasicBlock* succ, BasicBlock* bb);
     void replaceSucc(size_t num, BasicBlock* bb);
 
+    BasicBlock* splitBlockAfterInst(Inst* inst, bool make_true_succ = true);
+
     void setMarker(marker_t marker);
     void resetMarker(marker_t marker);
     bool isMarked(marker_t marker) const;

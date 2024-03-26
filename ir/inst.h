@@ -420,6 +420,17 @@ class CallInst final : public Inst
         new_arg->addUser(this);
     }
 
+    DataType getType() const noexcept override
+    {
+        for (auto&& arg : args)
+        {
+            DataType type = arg->getType();
+            if (type != DataType::NoType)
+                return type;
+        }
+        return DataType::NoType;
+    }
+
     void dump(std::ostream& out = std::cout) const override;
 
   private:
@@ -493,7 +504,7 @@ class MovInst final : public FixedInputsInst<1>
     size_t reg_num = 0;
 };
 
-class PhiInst : public Inst
+class PhiInst final : public Inst
 {
   public:
     using phi_pair_t = std::pair<Inst*, BasicBlock*>;
@@ -571,6 +582,15 @@ class PhiInst : public Inst
 
   private:
     std::vector<phi_pair_t> inputs;
+};
+
+class RetVoidInst final : public Inst
+{
+    explicit RetVoidInst(size_t id_) : Inst(id_, InstType::RetVoid)
+    {}
+
+    ~RetVoidInst() = default;
+    void dump(std::ostream& out = std::cout) const override;
 };
 
 } // namespace compiler

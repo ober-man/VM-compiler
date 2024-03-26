@@ -15,12 +15,13 @@ constexpr size_t INVALID_REG = 1000;
 //////////////////////////////////////__InstType__///////////////////////////////////////////////
 
 #define INST_TYPE_LIST(ACTION)                                                                     \
-    ACTION(Const, ConstInst)                                                                       \
-    ACTION(Param, ParamInst)                                                                       \
-    ACTION(Call,  CallInst)                                                                        \
-    ACTION(Cast,  CastInst)                                                                        \
-    ACTION(Mov,   MovInst)                                                                         \
-    ACTION(Phi,   PhiInst)
+    ACTION(Const,   ConstInst)                                                                     \
+    ACTION(Param,   ParamInst)                                                                     \
+    ACTION(Call,    CallInst)                                                                      \
+    ACTION(Cast,    CastInst)                                                                      \
+    ACTION(Mov,     MovInst)                                                                       \
+    ACTION(Phi,     PhiInst)                                                                       \
+    ACTION(RetVoid, RetVoidInst)
 
 #define BINARY_OP_LIST(ACTION)                                                                     \
     ACTION(Add,  BinaryInst)                                                                       \

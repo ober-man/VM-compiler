@@ -120,7 +120,7 @@ class BasicBlock
     }
 
     // return true, if *this is a dominator of bb
-    bool isDominator(BasicBlock* bb)
+    bool dominates(BasicBlock* bb)
     {
         auto& doms = bb->getDominators();
         return std::find(doms.begin(), doms.end(), this) != doms.end();

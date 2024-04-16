@@ -11,6 +11,26 @@ Inst* createInst(Args&&... args)
     return T{std::forward<Args>(args)...};
 }
 
+// return true, if (*this) dominates inst
+bool Inst::dominates(Inst* inst) const
+{
+    auto* other_bb = inst->getBB();
+    if (bb != other_bb)
+        return bb->dominates(other_bb);
+
+    if (inst == this)
+        return true;
+
+    auto* cur_inst = next;
+    while (cur_inst != nullptr)
+    {
+        if (cur_inst == inst)
+            return true;
+        cur_inst = cur_inst->getNext();
+    }
+    return false;
+}
+
 void Inst::dumpUsers(std::ostream& out) const
 {
     auto size = users.size();

@@ -99,6 +99,7 @@ class Inst
     {}
     virtual void dump(std::ostream& out = std::cout) const = 0;
     void dumpUsers(std::ostream& out = std::cout) const;
+    bool dominates(Inst* inst) const;
 
   protected:
     InstType inst_type = InstType::NoneInst;

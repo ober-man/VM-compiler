@@ -24,23 +24,25 @@ constexpr size_t INVALID_REG = 1000;
     ACTION(RetVoid, RetVoidInst)
 
 #define BINARY_OP_LIST(ACTION)                                                                     \
-    ACTION(Add,  BinaryInst)                                                                       \
-    ACTION(Sub,  BinaryInst)                                                                       \
-    ACTION(Mul,  BinaryInst)                                                                       \
-    ACTION(Div,  BinaryInst)                                                                       \
-    ACTION(Mod,  BinaryInst)                                                                       \
-    ACTION(Shl,  BinaryInst)                                                                       \
-    ACTION(Shr,  BinaryInst)                                                                       \
-    ACTION(AShr, BinaryInst)                                                                       \
-    ACTION(And,  BinaryInst)                                                                       \
-    ACTION(Or,   BinaryInst)                                                                       \
-    ACTION(Xor,  BinaryInst)                                                                       \
-    ACTION(Cmp,  BinaryInst)
+    ACTION(Add,         BinaryInst)                                                                \
+    ACTION(Sub,         BinaryInst)                                                                \
+    ACTION(Mul,         BinaryInst)                                                                \
+    ACTION(Div,         BinaryInst)                                                                \
+    ACTION(Mod,         BinaryInst)                                                                \
+    ACTION(Shl,         BinaryInst)                                                                \
+    ACTION(Shr,         BinaryInst)                                                                \
+    ACTION(AShr,        BinaryInst)                                                                \
+    ACTION(And,         BinaryInst)                                                                \
+    ACTION(Or,          BinaryInst)                                                                \
+    ACTION(Xor,         BinaryInst)                                                                \
+    ACTION(Cmp,         BinaryInst)                                                                \
+    ACTION(BoundsCheck, BinaryInst)
 
 #define UNARY_OP_LIST(ACTION)                                                                      \
-    ACTION(Not,    UnaryInst)                                                                      \
-    ACTION(Neg,    UnaryInst)                                                                      \
-    ACTION(Return, UnaryInst)
+    ACTION(Not,       UnaryInst)                                                                   \
+    ACTION(Neg,       UnaryInst)                                                                   \
+    ACTION(Return,    UnaryInst)                                                                   \
+    ACTION(ZeroCheck, UnaryInst)
 
 #define JUMP_OP_LIST(ACTION)                                                                       \
     ACTION(Jmp, JumpInst)                                                                          \

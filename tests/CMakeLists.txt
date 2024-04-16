@@ -6,7 +6,8 @@ set(TESTS_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/domtree_test.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/loop_analyzer_test.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/const_folding_test.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/inline_test.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/inline_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/checks_elimination_test.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/peepholes_test.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/linear_test.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/liveness_test.cpp

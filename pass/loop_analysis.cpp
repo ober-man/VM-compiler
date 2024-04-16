@@ -40,7 +40,7 @@ void LoopAnalysis::findLoopsRec(BasicBlock* bb, BasicBlock* prev_bb)
             return;
         }
 
-        bool is_irreducible = !bb->isDominator(prev_bb);
+        bool is_irreducible = !bb->dominates(prev_bb);
         loop = new Loop{/*header=*/bb, /*latch=*/prev_bb, is_irreducible};
         bb->setLoop(loop);
         return;

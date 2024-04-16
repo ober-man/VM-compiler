@@ -6,6 +6,7 @@ set(PASS_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/const_folding.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/dce.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/inline.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/checks_elimination.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/peepholes.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/linear_order.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/liveness.cpp

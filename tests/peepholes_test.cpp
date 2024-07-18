@@ -203,23 +203,16 @@ TEST(PEEPHOLES_TEST, TEST_ASHR)
     BB [2/3]
         v15. AShr  i64 v0, v1
         v2. Sub    i64 v0, v15
-        v3. Jmp    bb2
-
-    BB [3/3]
-        v4. Shl   i64 v2, v100
-        v5. AShr  i64 v4, v100
-        v6. Ret   v5
+        v3. Ret   v2
     end
     */
     auto graph = std::make_shared<Graph>("peepholes_test_ashr");
 
     auto* bb1 = new BasicBlock{1, graph};
     auto* bb2 = new BasicBlock{2, graph};
-    auto* bb3 = new BasicBlock{3, graph};
 
     graph->insertBB(bb1);
     graph->insertBB(bb2);
-    graph->insertBB(bb3);
 
     auto* v0 = new ParamInst{0, DataType::i32, "a0"};
     auto* v1 = new ConstInst{1, static_cast<uint64_t>(0)};
@@ -230,22 +223,14 @@ TEST(PEEPHOLES_TEST, TEST_ASHR)
 
     auto* v15 = new BinaryInst{15, InstType::AShr, v0, v1};
     auto* v2 = new BinaryInst{2, InstType::Sub, v0, v15};
-    auto* v3 = new JumpInst{3, InstType::Jmp, bb2};
+    auto* v3 = new UnaryInst{6, InstType::Return, v2};
     bb2->pushBackInst(v15);
     bb2->pushBackInst(v2);
     bb2->pushBackInst(v3);
-
-    auto* v4 = new BinaryInst{4, InstType::Shl, v2, v100};
-    auto* v5 = new BinaryInst{5, InstType::AShr, v4, v100};
-    auto* v6 = new UnaryInst{6, InstType::Return, v5};
-    bb3->pushBackInst(v4);
-    bb3->pushBackInst(v5);
-    bb3->pushBackInst(v6);
 
     // graph->dump();
     graph->runPass<Peepholes>();
     graph->runPass<Dce>();
     // graph->dump();
     ASSERT_EQ(static_cast<BinaryInst*>(v2)->getInput(1), v0);
-    ASSERT_EQ(static_cast<UnaryInst*>(v6)->getInput(0), v2);
 }

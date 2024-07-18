@@ -49,6 +49,10 @@ namespace compiler
     type get##func_name() noexcept                                                                 \
     {                                                                                              \
         return elem;                                                                               \
+    }                                                                                              \
+    const type get##func_name() const noexcept                                                     \
+    {                                                                                              \
+        return elem;                                                                               \
     }
 
 #define DEFINE_GETTER_SETTER(elem, func_name, type)                                                \

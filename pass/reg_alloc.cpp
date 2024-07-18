@@ -48,19 +48,16 @@ void RegisterAllocation::linearScan()
 
 void RegisterAllocation::expireOldIntervals(LiveInterval* curr)
 {
-    std::vector<LiveInterval*> erasing;
-    for (auto* live_int : active_intervals)
+    for (auto it = active_intervals.begin(), ite = active_intervals.end(); it != ite;)
     {
+        auto* live_int = *it;
         if (live_int->getIntervalEnd() > curr->getIntervalStart())
             return;
-        erasing.push_back(live_int);
         auto reg = live_int->getLocation();
         ASSERT(reg != INVALID_REG);
         releaseReg(reg);
+        it = active_intervals.erase(it);
     }
-
-    for (auto* item : erasing)
-        active_intervals.erase(item);
 }
 
 void RegisterAllocation::spillAtInterval(LiveInterval* curr)

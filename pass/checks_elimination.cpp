@@ -21,8 +21,7 @@ void ChecksElimination::visitZeroCheck([[maybe_unused]] Visitor* v, Inst* inst)
     auto* input = static_cast<UnaryInst*>(inst)->getInput(0);
     for (auto* user : input->getUsers())
     {
-        if (user->getInstType() == InstType::ZeroCheck && user != inst &&
-            user->dominates(inst))
+        if (user->getInstType() == InstType::ZeroCheck && user != inst && user->dominates(inst))
         {
             auto* bb = inst->getBB();
             input->removeUser(inst);

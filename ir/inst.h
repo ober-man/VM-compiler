@@ -95,7 +95,11 @@ class Inst
 
     virtual void setInput([[maybe_unused]] Inst* input, [[maybe_unused]] size_t num)
     {}
+    virtual void swapInputs()
+    {}
     virtual void replaceInput([[maybe_unused]] Inst* old_input, [[maybe_unused]] Inst* new_input)
+    {}
+    virtual void replaceInput([[maybe_unused]] size_t num, [[maybe_unused]] Inst* new_input)
     {}
     virtual void dump(std::ostream& out = std::cout) const = 0;
     void dumpUsers(std::ostream& out = std::cout) const;
@@ -145,10 +149,9 @@ class FixedInputsInst : public Inst
         new_input->addUser(this);
     }
 
-    void replaceInput(size_t num, Inst* new_input)
+    void replaceInput(size_t num, Inst* new_input) override
     {
         ASSERT(num < N, "too big input number");
-        auto* old_input = inputs[num];
         inputs[num] = new_input;
         new_input->addUser(this);
     }
@@ -178,6 +181,11 @@ class BinaryInst final : public FixedInputsInst<2>
         if (data_type == DataType::NoType)
             return inputs[1]->getType();
         return data_type;
+    }
+
+    void swapInputs() override
+    {
+        std::swap(inputs[0], inputs[1]);
     }
 
     void dump(std::ostream& out = std::cout) const override
@@ -561,7 +569,7 @@ class PhiInst final : public Inst
         new_input->addUser(this);
     }
 
-    void replaceInput(size_t num, Inst* new_arg)
+    void replaceInput(size_t num, Inst* new_arg) override
     {
         ASSERT(num < inputs.size() && "too big input number");
         inputs[num].first = new_arg;

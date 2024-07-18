@@ -9,14 +9,22 @@ namespace compiler
 BasicBlock::~BasicBlock()
 {
     Inst* inst = first_inst;
+    Inst* phi = first_phi;
     while (inst != nullptr)
     {
         first_inst = inst->getNext();
         delete inst;
         inst = first_inst;
     }
+    while (phi != nullptr)
+    {
+        first_phi = static_cast<PhiInst*>(phi->getNext());
+        delete phi;
+        phi = first_phi;
+    }
     if (live_int != nullptr)
         delete live_int;
+    delete markers;
 }
 
 void BasicBlock::pushBackInst(Inst* inst)
